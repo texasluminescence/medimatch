@@ -225,3 +225,5 @@ _Pvt_Extensions
 # environment settings
 *.iml
 
+# DART configs
+.dart_tool/
