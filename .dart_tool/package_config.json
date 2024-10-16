@@ -45,7 +45,7 @@
     },
     {
       "name": "flutter",
-      "rootUri": "file:///Users/jenny/Desktop/MediMatch/flutter/packages/flutter",
+      "rootUri": "file:///Users/jenny/Desktop/flutter/packages/flutter",
       "packageUri": "lib/",
       "languageVersion": "3.3"
     },
@@ -57,7 +57,7 @@
     },
     {
       "name": "flutter_test",
-      "rootUri": "file:///Users/jenny/Desktop/MediMatch/flutter/packages/flutter_test",
+      "rootUri": "file:///Users/jenny/Desktop/flutter/packages/flutter_test",
       "packageUri": "lib/",
       "languageVersion": "3.3"
     },
@@ -111,7 +111,7 @@
     },
     {
       "name": "sky_engine",
-      "rootUri": "file:///Users/jenny/Desktop/MediMatch/flutter/bin/cache/pkg/sky_engine",
+      "rootUri": "file:///Users/jenny/Desktop/flutter/bin/cache/pkg/sky_engine",
       "packageUri": "lib/",
       "languageVersion": "3.2"
     },
@@ -170,10 +170,10 @@
       "languageVersion": "3.5"
     }
   ],
-  "generated": "2024-10-16T17:18:50.674078Z",
+  "generated": "2024-10-16T20:55:16.778396Z",
   "generator": "pub",
   "generatorVersion": "3.5.3",
-  "flutterRoot": "file:///Users/jenny/Desktop/MediMatch/flutter",
+  "flutterRoot": "file:///Users/jenny/Desktop/flutter",
   "flutterVersion": "3.24.3",
   "pubCache": "file:///Users/jenny/.pub-cache"
 }

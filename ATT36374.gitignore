@@ -220,7 +220,7 @@ _Pvt_Extensions
 *.sln.iml
 
 # Mac specific files
-.DS_Store
+*.DS_Store
 
 # environment settings
 *.iml
