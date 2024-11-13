@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'login.dart';
 import 'user_profile.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() {
+void main() async {
+  // Directly put AuthService in GetX dependency injection
+  await dotenv.load();
   runApp(const MyApp());
 }
 
@@ -11,7 +16,8 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: ThemeData(
         // This is the theme of your application.
@@ -32,7 +38,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Home Page'),
+      home: const Login(),
     );
   }
 }
@@ -64,7 +70,8 @@ class _MyHomePageState extends State<MyHomePage> {
       _selectedIndex = index;
     });
 
-    if (index == 3) { // Assuming "Rewards" is the fourth tab
+    if (index == 3) {
+      // Assuming "Profile" is the fourth tab
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const UserProfile()),
@@ -74,17 +81,54 @@ class _MyHomePageState extends State<MyHomePage> {
           _selectedIndex = 1; // Reset to Home tab
         });
       });
+    } else if (index == 4) {
+      // Assuming "Settings" is the fifth tab
+      showModalBottomSheet(
+        context: context,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        builder: (BuildContext context) {
+          return SizedBox(
+            height: 200,
+            child: Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  // Close the modal and redirect to Login page
+                  Navigator.pop(context); // Close the bottom sheet
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const Login()),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  minimumSize: const Size(200, 50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text(
+                  'Log Out',
+                  style: TextStyle(fontSize: 18, color: Colors.white),
+                ),
+              ),
+            ),
+          );
+        },
+      );
     }
   }
 
   // unused for now but once we have content it will be used to make navbar transparent
+  // ignore: unused_element
   void _onScroll(double offset) {
     // Adjust opacity based on scroll offset
     setState(() {
       _opacity = (1 - offset / 200).clamp(0.5, 1.0);
     });
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
