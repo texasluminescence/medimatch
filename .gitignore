@@ -225,3 +225,6 @@ _Pvt_Extensions
 android/
 build/
 macos
+.env
+.flutter-plugins
+.flutter-plugins-dependencies
