@@ -38,7 +38,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const Login(),
+      home: const MyHomePage(title: "HomePage"),
     );
   }
 }
@@ -63,6 +63,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 1;
+  // Default to "Home" tab
   double _opacity = 1.0;
 
   void _onItemTapped(int index) {
@@ -78,7 +79,7 @@ class _MyHomePageState extends State<MyHomePage> {
       ).then((_) {
         // Return to Home and make Home icon glow
         setState(() {
-          _selectedIndex = 1; // Reset to Home tab
+          _selectedIndex = 1; // Reset to Home tab after returning
         });
       });
     } else if (index == 4) {
@@ -129,8 +130,104 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  Widget _buildHomeContent() {
+    String userName = "User"; // Replace with username later
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+
+        // Doctor Image and Welcome Message
+        Row(
+          children: [
+            Container(
+
+              width: 100,
+
+              height: 100,
+
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(50),
+                image: const DecorationImage(
+                  image: AssetImage("assets/doctor.jpg"), // Add your image to assets
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+
+                "Welcome $userName, what brings you in today?",
+
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 40),
+
+        // Symptoms Input Section
+
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+
+              "Enter your symptoms below:",
+
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              decoration: InputDecoration(
+                hintText: "e.g., fever, headache, fatigue",
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  // Handle user input submission
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text(
+                  "Submit",
+                  style: TextStyle(color: Colors.white, fontSize: 16),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    List<Widget> pages = [
+
+      const Center(child: Text("Search Page")), // Placeholder for "Search"
+
+      _buildHomeContent(), // Home Page Content
+
+      const Center(child: Text("Scan Page")), // Placeholder for "Scan"
+
+      const Center(child: Text("Profile Placeholder")), // Handled by navigation
+
+      const Center(child: Text("Settings Placeholder")), // Handled by navigation
+
+    ];
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
