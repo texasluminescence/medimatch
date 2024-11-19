@@ -1,114 +1,109 @@
-// ignore_for_file: use_build_context_synchronously
+// ignore_for_file: avoid_print, use_build_context_synchronously
 
+import 'package:amplify_flutter/amplify_flutter.dart';
+import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
 import 'package:flutter/material.dart';
-import 'package:mongo_dart/mongo_dart.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../main.dart';
+import '../login.dart';
 
-class MongoDBService {
-  final String connectionString = dotenv.env['MONGO_DB_CONNECTION'] ?? '';
-  late Db _db;
-  late DbCollection _usersCollection;
-  bool _isConnected = false;
 
-  /// Connect to MongoDB
-  Future<void> connect() async {
-    if (_isConnected) return;
-
+class AmplifyService {
+  /// Sign Up a new user
+  Future<String> signUp(String email, String password, String name) async {
     try {
-      _db = await Db.create(connectionString);
-      await _db.open();
-      _usersCollection = _db.collection('users');
-      _isConnected = true;
-    } catch (e) {
-      throw Exception('Failed to connect to MongoDB: $e');
-    }
-  }
+      final userAttributes = {
+        CognitoUserAttributeKey.email: email,
+        CognitoUserAttributeKey.name: name,
+      };
 
-  /// Ensure that MongoDB is connected before any operation
-  Future<void> ensureConnected() async {
-    if (!_isConnected) {
-      await connect();
-    }
-  }
-
-  /// Check if a user exists by email
-  Future<bool> checkUserExists(String email) async {
-    await ensureConnected();
-    try {
-      final user = await _usersCollection.findOne({'email': email});
-      return user != null;
-    } catch (e) {
-      throw Exception('Error checking user existence: $e');
-    }
-  }
-
-  /// Login a user by email and password
-  Future<void> handleLogin(BuildContext context, String email, String password) async {
-    await ensureConnected();
-    try {
-      final user = await _usersCollection.findOne({
-        'email': email,
-        'password': password, // Ensure passwords are hashed in production
-      });
-
-      if (user != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login Successful')),
-        );
-
-        // Redirect to Home Page
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const MyHomePage(title: "Home Page"),
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid Credentials')),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Login failed: ${e.toString()}')),
-      );
-    }
-  }
-
-  /// Sign up a new user
-  Future<void> handleSignUp(
-      BuildContext context, String name, String email, String password) async {
-    await ensureConnected();
-    try {
-      if (await checkUserExists(email)) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('User Already Exists')),
-        );
-        return;
-      }
-
-      await _usersCollection.insertOne({
-        'name': name,
-        'email': email,
-        'password': password, // Hash passwords in production
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Account Created Successfully')),
+      await Amplify.Auth.signUp(
+        username: email,
+        password: password,
+        options: CognitoSignUpOptions(userAttributes: userAttributes),
       );
 
-      // Redirect to Home Page
+      return 'Sign-Up Successful. Please confirm your email.';
+    } on AuthException catch (e) {
+      return e.message;
+    }
+  }
+
+  Future<void> confirmSignUpAndRedirect(
+    BuildContext context, String email, String confirmationCode, String password) async {
+    try {
+      // Force log out any active session
+      await Amplify.Auth.signOut();
+
+      // Confirm the sign-up
+      await Amplify.Auth.confirmSignUp(
+        username: email,
+        confirmationCode: confirmationCode,
+      );
+
+      // Automatically sign the user back in
+      await Amplify.Auth.signIn(username: email, password: password);
+
+      // Navigate to the Home Page
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-          builder: (context) => const MyHomePage(title: "Home Page"),
-        ),
+        MaterialPageRoute(builder: (context) => const MyHomePage(title: "Home Page")),
       );
-    } catch (e) {
+    } on AuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Sign-up failed: ${e.toString()}')),
+        SnackBar(content: Text('Confirmation failed: ${e.message}')),
       );
     }
   }
+
+  /// Log in a user
+  Future<String> login(String email, String password) async {
+    try {
+      await Amplify.Auth.signIn(
+        username: email,
+        password: password,
+      );
+      return 'Login Successful';
+    } on AuthException catch (e) {
+      return e.message;
+    }
+  }
+
+  Future<void> logout(BuildContext context) async {
+    try {
+      // Perform sign-out with global sign-out
+      await Amplify.Auth.signOut(options: const SignOutOptions(globalSignOut: true));
+
+      // Clear the sign-in session
+      await Amplify.Auth.signOut();
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const Login()),
+      );
+    } catch (e) {
+      print('Error logging out: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Logout failed: ${e.toString()}')),
+      );
+    }
+  }
+
+  /// Check if a user is already logged in
+  Future<bool> isLoggedIn() async {
+    try {
+      final authSession = await Amplify.Auth.fetchAuthSession();
+      return authSession.isSignedIn;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Resend the confirmation code to the user
+  Future<void> resendConfirmationCode(String email) async {
+  try {
+    await Amplify.Auth.resendSignUpCode(username: email);
+  } on AuthException catch (e) {
+    throw Exception('Resend code failed: ${e.message}');
+  }
+}
 }

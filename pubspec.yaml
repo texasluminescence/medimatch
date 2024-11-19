@@ -37,9 +37,13 @@ dependencies:
   cupertino_icons: ^1.0.8
   http: ^0.13.4
   get: ^4.6.5
-  mongo_dart: ^0.10.3
+  
   flutter_dotenv: ^5.0.3
   shared_preferences: ^2.0.8
+  amplify_flutter: ^0.6.14
+  amplify_auth_cognito: ^0.6.1
+  amplify_authenticator: ^0.2.5
+  amplify_storage_s3: ^0.6.14
 
 dev_dependencies:
   flutter_test:
@@ -67,6 +71,7 @@ flutter:
   assets:
     - lib/assets/google_logo.png
     - lib/assets/apple_logo.png
+    - lib/assets/otp_verification.png
     - .env
 
   # An image asset can refer to one or more resolution-specific "variants", see
