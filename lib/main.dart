@@ -1,19 +1,40 @@
+// ignore_for_file: avoid_print
+
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:amplify_flutter/amplify_flutter.dart';
+import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
 import 'login.dart';
 import 'user_profile.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'amplifyconfiguration.dart';
 
 void main() async {
-  // Directly put AuthService in GetX dependency injection
-  await dotenv.load();
-  runApp(const MyApp());
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Configure Amplify
+  try {
+    final authPlugin = AmplifyAuthCognito();
+    await Amplify.addPlugins([authPlugin]);
+    await Amplify.configure(amplifyconfig);
+  } catch (e) {
+    print('Error configuring Amplify: $e');
+  }
+
+  runApp(const AppEntry());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class AppEntry extends StatelessWidget {
+  const AppEntry({super.key});
 
-  // This widget is the root of your application.
+  Future<bool> _checkLoginStatus() async {
+    try {
+      final authSession = await Amplify.Auth.fetchAuthSession();
+      return authSession.isSignedIn;
+    } catch (e) {
+      print('Error checking login status: $e');
+      return false; // Return false explicitly if an error occurs
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
@@ -39,9 +60,50 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       home: const MyHomePage(title: "HomePage"),
+    return FutureBuilder<bool>(
+      future: _checkLoginStatus(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const MaterialApp(
+            home: Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            ),
+          );
+        } else if (snapshot.hasError) {
+          return MaterialApp(
+            home: Scaffold(
+              body: Center(
+                child: Text('Error: ${snapshot.error}'),
+              ),
+            ),
+          );
+        } else {
+          // Ensure we pass a non-null value for isLoggedIn
+          final isLoggedIn = snapshot.data ?? false;
+          return MyApp(isLoggedIn: isLoggedIn);
+        }
+      },
     );
   }
 }
+
+class MyApp extends StatelessWidget {
+  final bool isLoggedIn;
+
+  const MyApp({super.key, required this.isLoggedIn});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'MediMatch',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: isLoggedIn ? const MyHomePage(title: 'Home Page') : const Login(),
+    );
+  }
+}
+
+
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
@@ -230,6 +292,7 @@ class _MyHomePageState extends State<MyHomePage> {
     ];
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
       ),

@@ -1,0 +1,20 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-medimatch-dev-78aec-authRole",
+      "UnauthRoleArn": "arn:aws:iam::891376936010:role/amplify-medimatch-dev-78aec-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::891376936010:role/amplify-medimatch-dev-78aec-authRole",
+      "Region": "us-east-1",
+      "DeploymentBucketName": "amplify-medimatch-dev-78aec-deployment",
+      "UnauthRoleName": "amplify-medimatch-dev-78aec-unauthRole",
+      "StackName": "amplify-medimatch-dev-78aec",
+      "StackId": "arn:aws:cloudformation:us-east-1:891376936010:stack/amplify-medimatch-dev-78aec/83aecad0-a636-11ef-9eba-0e2d40da4d73",
+      "AmplifyAppId": "d2hblfssgk2qhx"
+    },
+    "categories": {
+      "auth": {
+        "medimatch5a8fb840": {}
+      }
+    }
+  }
+}
