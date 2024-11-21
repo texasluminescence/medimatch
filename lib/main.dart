@@ -80,23 +80,119 @@ class MyApp extends StatelessWidget {
   }
 }
 
-
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
 
   final String title;
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
+}
+
+// Dashboard Code
+class Dashboard extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Dashboard"),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            // Welcome Section
+            WelcomeSection(userName: "User"), // Replace with dynamic username
+
+            const SizedBox(height: 24),
+
+            // Symptoms Input Section
+            SymptomsInputSection(),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Welcome Message in Dashboard
+class WelcomeSection extends StatelessWidget {
+  final String userName;
+
+  WelcomeSection({required this.userName});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 100,
+          height: 100,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(50),
+            image: const DecorationImage(
+              image:
+                  AssetImage("lib/assets/doctor.jpg"), // Add your image to assets
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Text(
+            "Welcome $userName, what brings you in today?",
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// Symptom Input in Dashboard
+class SymptomsInputSection extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "",
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          decoration: InputDecoration(
+            hintText: "Message Dr. MediMatch",
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          ),
+        ),
+        const SizedBox(height: 20),
+        Center(
+          child: ElevatedButton(
+            onPressed: () {
+              // Handle user input submission
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text(
+              "Submit",
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 class _MyHomePageState extends State<MyHomePage> {
@@ -168,110 +264,25 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  Widget _buildHomeContent() {
-    String userName = "User"; // Replace with username later
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-
-        // Doctor Image and Welcome Message
-        Row(
-          children: [
-            Container(
-
-              width: 100,
-
-              height: 100,
-
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(50),
-                image: const DecorationImage(
-                  image: AssetImage("assets/doctor.jpg"), // Add your image to assets
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Text(
-
-                "Welcome $userName, what brings you in today?",
-
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 40),
-
-        // Symptoms Input Section
-
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-
-              "Enter your symptoms below:",
-
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              decoration: InputDecoration(
-                hintText: "e.g., fever, headache, fatigue",
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Center(
-              child: ElevatedButton(
-                onPressed: () {
-                  // Handle user input submission
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text(
-                  "Submit",
-                  style: TextStyle(color: Colors.white, fontSize: 16),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    List<Widget> pages = [
-
-      const Center(child: Text("Search Page")), // Placeholder for "Search"
-
-      _buildHomeContent(), // Home Page Content
-
-      const Center(child: Text("Scan Page")), // Placeholder for "Scan"
-
-      const Center(child: Text("Profile Placeholder")), // Handled by navigation
-
-      const Center(child: Text("Settings Placeholder")), // Handled by navigation
-
-    ];
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
       ),
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: [
+          const Center(child: Text("Search Page")),
+          Dashboard(),
+          const Center(child: Text("Scan Page")),
+          const Center(child: Text("Profile Placeholder")),
+          const Center(child: Text("Settings Placehold")),
+        ],
+      ),
+      //
       bottomNavigationBar: Opacity(
         opacity: _opacity,
         child: BottomNavigationBar(
