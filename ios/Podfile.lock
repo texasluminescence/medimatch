@@ -1,0 +1,143 @@
+PODS:
+  - Amplify (1.30.4):
+    - Amplify/Default (= 1.30.4)
+  - Amplify/Default (1.30.4)
+  - amplify_auth_cognito_ios (0.0.1):
+    - Amplify (= 1.30.4)
+    - amplify_core
+    - AmplifyPlugins/AWSCognitoAuthPlugin (= 1.30.4)
+    - Flutter
+    - ObjectMapper
+  - amplify_core (0.0.1):
+    - Flutter
+    - SwiftFormat/CLI
+    - SwiftLint (= 0.48.0)
+  - amplify_flutter_ios (0.0.1):
+    - Amplify (= 1.30.4)
+    - amplify_core
+    - AmplifyPlugins/AWSCognitoAuthPlugin (= 1.30.4)
+    - AWSPluginsCore (= 1.30.4)
+    - Flutter
+    - SwiftFormat/CLI
+    - SwiftLint (= 0.48.0)
+  - amplify_storage_s3_ios (0.0.1):
+    - Amplify (= 1.30.4)
+    - amplify_core
+    - AmplifyPlugins/AWSS3StoragePlugin (= 1.30.4)
+    - Flutter
+  - AmplifyPlugins/AWSCognitoAuthPlugin (1.30.4):
+    - AWSAuthCore (~> 2.33.0)
+    - AWSCognitoIdentityProvider (~> 2.33.0)
+    - AWSCognitoIdentityProviderASF (~> 2.33.0)
+    - AWSCore (~> 2.33.0)
+    - AWSMobileClient (~> 2.33.0)
+    - AWSPluginsCore (= 1.30.4)
+  - AmplifyPlugins/AWSS3StoragePlugin (1.30.4):
+    - AWSCore (~> 2.33.0)
+    - AWSPluginsCore (= 1.30.4)
+    - AWSS3 (~> 2.33.0)
+  - AWSAuthCore (2.33.10):
+    - AWSCore (= 2.33.10)
+  - AWSCognitoIdentityProvider (2.33.10):
+    - AWSCognitoIdentityProviderASF (= 2.33.10)
+    - AWSCore (= 2.33.10)
+  - AWSCognitoIdentityProviderASF (2.33.10):
+    - AWSCore (= 2.33.10)
+  - AWSCore (2.33.10)
+  - AWSMobileClient (2.33.10):
+    - AWSAuthCore (= 2.33.10)
+    - AWSCognitoIdentityProvider (= 2.33.10)
+    - AWSCognitoIdentityProviderASF (= 2.33.10)
+    - AWSCore (= 2.33.10)
+  - AWSPluginsCore (1.30.4):
+    - Amplify (= 1.30.4)
+    - AWSCore (~> 2.33.0)
+  - AWSS3 (2.33.10):
+    - AWSCore (= 2.33.10)
+  - Flutter (1.0.0)
+  - flutter_barcode_scanner (2.0.0):
+    - Flutter
+  - image_picker_ios (0.0.1):
+    - Flutter
+  - ObjectMapper (4.2.0)
+  - path_provider_foundation (0.0.1):
+    - Flutter
+    - FlutterMacOS
+  - shared_preferences_foundation (0.0.1):
+    - Flutter
+    - FlutterMacOS
+  - SwiftFormat/CLI (0.55.0)
+  - SwiftLint (0.48.0)
+
+DEPENDENCIES:
+  - amplify_auth_cognito_ios (from `.symlinks/plugins/amplify_auth_cognito_ios/ios`)
+  - amplify_core (from `.symlinks/plugins/amplify_core/ios`)
+  - amplify_flutter_ios (from `.symlinks/plugins/amplify_flutter_ios/ios`)
+  - amplify_storage_s3_ios (from `.symlinks/plugins/amplify_storage_s3_ios/ios`)
+  - Flutter (from `Flutter`)
+  - flutter_barcode_scanner (from `.symlinks/plugins/flutter_barcode_scanner/ios`)
+  - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
+  - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
+  - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
+
+SPEC REPOS:
+  trunk:
+    - Amplify
+    - AmplifyPlugins
+    - AWSAuthCore
+    - AWSCognitoIdentityProvider
+    - AWSCognitoIdentityProviderASF
+    - AWSCore
+    - AWSMobileClient
+    - AWSPluginsCore
+    - AWSS3
+    - ObjectMapper
+    - SwiftFormat
+    - SwiftLint
+
+EXTERNAL SOURCES:
+  amplify_auth_cognito_ios:
+    :path: ".symlinks/plugins/amplify_auth_cognito_ios/ios"
+  amplify_core:
+    :path: ".symlinks/plugins/amplify_core/ios"
+  amplify_flutter_ios:
+    :path: ".symlinks/plugins/amplify_flutter_ios/ios"
+  amplify_storage_s3_ios:
+    :path: ".symlinks/plugins/amplify_storage_s3_ios/ios"
+  Flutter:
+    :path: Flutter
+  flutter_barcode_scanner:
+    :path: ".symlinks/plugins/flutter_barcode_scanner/ios"
+  image_picker_ios:
+    :path: ".symlinks/plugins/image_picker_ios/ios"
+  path_provider_foundation:
+    :path: ".symlinks/plugins/path_provider_foundation/darwin"
+  shared_preferences_foundation:
+    :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
+
+SPEC CHECKSUMS:
+  Amplify: 4e41668c8801667e174ab50c12bc3099c71a257f
+  amplify_auth_cognito_ios: 9541d4c811f978e22d4f4d6e3ed50b7c31ed9d35
+  amplify_core: 0876b2fbbcec7619f5b58b20c59ecc0118f65a47
+  amplify_flutter_ios: 4389fb31392bf559fead6ac2e3fd2f7ec8e44beb
+  amplify_storage_s3_ios: 0656483cb561c06b67bd0837830515cf4415b9e9
+  AmplifyPlugins: 1335f0919aa07329df58685a020f2311c75a5176
+  AWSAuthCore: dfaed2a858cdb320c6c9c5c94c4de97bbaa76dad
+  AWSCognitoIdentityProvider: 4cb2d157236eb5da17c8acc18e6c2e3b7b3a739e
+  AWSCognitoIdentityProviderASF: af81ced9e3d1e14634e33abbd2343c2c9b5c8138
+  AWSCore: 3c1a3dad47fcf9db8bebc633f296f10b690328c6
+  AWSMobileClient: 9df04a49060cae075dbba851c8281e1f0c90d112
+  AWSPluginsCore: f2188458c27e6cb09597c67876f80611d14275d7
+  AWSS3: 63eaa9993edea13160eec1f032978b179a2807fa
+  Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
+  flutter_barcode_scanner: 7a1144744c28dc0c57a8de7218ffe5ec59a9e4bf
+  image_picker_ios: c560581cceedb403a6ff17f2f816d7fea1421fc1
+  ObjectMapper: 1eb41f610210777375fa806bf161dc39fb832b81
+  path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
+  shared_preferences_foundation: fcdcbc04712aee1108ac7fda236f363274528f78
+  SwiftFormat: 3e150b22884bcd4b0f8c91a84409996a3e7ca8dc
+  SwiftLint: 284cea64b6187c5d6bd83e9a548a64104d546447
+
+PODFILE CHECKSUM: 819463e6a0290f5a72f145ba7cde16e8b6ef0796
+
+COCOAPODS: 1.16.2
