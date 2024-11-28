@@ -5,6 +5,7 @@ import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
 import 'login.dart';
 import 'user_profile.dart';
+import 'scanner.dart';
 import 'amplifyconfiguration.dart';
 
 void main() async {
@@ -30,8 +31,8 @@ class AppEntry extends StatelessWidget {
       final authSession = await Amplify.Auth.fetchAuthSession();
       return authSession.isSignedIn;
     } catch (e) {
-      print('Error checking login status: $e');
-      return false; // Return false explicitly if an error occurs
+      debugPrint('Error checking login status: $e');
+      return false; // Explicitly return false if an error occurs
     }
   }
 
@@ -55,7 +56,6 @@ class AppEntry extends StatelessWidget {
             ),
           );
         } else {
-          // Ensure we pass a non-null value for isLoggedIn
           final isLoggedIn = snapshot.data ?? false;
           return MyApp(isLoggedIn: isLoggedIn);
         }
@@ -75,26 +75,13 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'MediMatch',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: isLoggedIn ? const MyHomePage(title: 'Home Page') : const Login(),
+      home: isLoggedIn ? const MyHomePage(title: 'HomePage',) : const Login(),
     );
   }
 }
 
-
-
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+  const MyHomePage({super.key, required String title});
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -102,7 +89,31 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 1;
-  double _opacity = 1.0;
+  final double _opacity = 1.0;
+  String? _userName;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserName();
+  }
+
+  /// Fetch the user's name from AWS Amplify
+  Future<void> _fetchUserName() async {
+    try {
+      final userAttributes = await Amplify.Auth.fetchUserAttributes();
+      final nameAttribute =
+        userAttributes.firstWhere((attr) => attr.userAttributeKey.key == 'name', orElse: () => const AuthUserAttribute(userAttributeKey: CognitoUserAttributeKey.custom('name'), value: 'User'));
+      setState(() {
+      _userName = nameAttribute.value.split(' ').first;
+      });
+    } catch (e) {
+      print('Error fetching user name: $e');
+      setState(() {
+        _userName = 'User';
+      });
+    }
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -110,18 +121,17 @@ class _MyHomePageState extends State<MyHomePage> {
     });
 
     if (index == 3) {
-      // Assuming "Profile" is the fourth tab
+      // Navigate to the profile page
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const UserProfile()),
       ).then((_) {
-        // Return to Home and make Home icon glow
         setState(() {
           _selectedIndex = 1; // Reset to Home tab
         });
       });
     } else if (index == 4) {
-      // Assuming "Settings" is the fifth tab
+      // Show settings modal
       showModalBottomSheet(
         context: context,
         shape: const RoundedRectangleBorder(
@@ -133,7 +143,6 @@ class _MyHomePageState extends State<MyHomePage> {
             child: Center(
               child: ElevatedButton(
                 onPressed: () {
-                  // Close the modal and redirect to Login page
                   Navigator.pop(context); // Close the bottom sheet
                   Navigator.pushReplacement(
                     context,
@@ -156,25 +165,60 @@ class _MyHomePageState extends State<MyHomePage> {
           );
         },
       );
+    } else if (index == 2) {
+      // Navigate to the scanner
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const Scanner()),
+      ).then((_) {
+        setState(() {
+          _selectedIndex = 1; // Reset to Home tab
+        });
+      });
     }
-  }
-
-  // unused for now but once we have content it will be used to make navbar transparent
-  // ignore: unused_element
-  void _onScroll(double offset) {
-    // Adjust opacity based on scroll offset
-    setState(() {
-      _opacity = (1 - offset / 200).clamp(0.5, 1.0);
-    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
+      backgroundColor: Colors.grey[100], // Slightly lighter off-white background
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Container(
+            color: const Color.fromARGB(255, 117, 232, 167), // Set the background color to white
+            width: double.infinity, // Ensure the container takes the full width
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 40.0), // Increased vertical padding
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 50), // Add white space
+                  Text(
+                    'Hello, ${_userName ?? 'User'}',
+                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10),
+                ],
+              ),
+            ),
+          ),
+          // Divider line between header and body
+          const Divider(
+            color: Colors.grey,
+            thickness: 1.0,
+          ),
+          // Scrollable body
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Container(
+                color: Colors.grey[100], // Slightly lighter off-white background
+              ),
+            ),
+          ),
+        ],
       ),
       bottomNavigationBar: Opacity(
         opacity: _opacity,

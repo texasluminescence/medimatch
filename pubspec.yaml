@@ -45,6 +45,8 @@ dependencies:
   amplify_authenticator: ^0.2.5
   amplify_storage_s3: ^0.6.14
 
+  flutter_barcode_scanner: ^2.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
