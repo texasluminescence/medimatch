@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
+import 'package:amplify_storage_s3/amplify_storage_s3.dart';
 import 'login.dart';
 import 'user_profile.dart';
 import 'scanner.dart';
@@ -14,7 +15,9 @@ void main() async {
   // Configure Amplify
   try {
     final authPlugin = AmplifyAuthCognito();
-    await Amplify.addPlugins([authPlugin]);
+    final storagePlugin = AmplifyStorageS3();
+
+    await Amplify.addPlugins([authPlugin, storagePlugin]);
     await Amplify.configure(amplifyconfig);
   } catch (e) {
     print('Error configuring Amplify: $e');

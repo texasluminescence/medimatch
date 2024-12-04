@@ -14,6 +14,15 @@
     "categories": {
       "auth": {
         "medimatch5a8fb840": {}
+      },
+      "function": {
+        "S3Trigger58d74340": {
+          "deploymentBucketName": "amplify-medimatch-dev-78aec-deployment",
+          "s3Key": "amplify-builds/S3Trigger58d74340-6c3579465652566d5073-build.zip"
+        }
+      },
+      "storage": {
+        "s30cf664af": {}
       }
     }
   }

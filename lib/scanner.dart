@@ -12,12 +12,18 @@ class _ScannerState extends State<Scanner> {
   String _scannedBarcode = "";
   bool _isScanned = false;
 
+  @override
+  void initState() {
+    super.initState();
+    scanBarcode(); // Automatically start scanning when the screen is opened
+  }
+
   /// Function to initiate barcode scanning
   Future<void> scanBarcode() async {
     try {
       // Start scanning
       final scannedBarcode = await FlutterBarcodeScanner.scanBarcode(
-        "#00FF00", // Line color (green)
+        "#FF0000", // Line color (red)
         "Cancel", // Cancel button text
         true, // Show the flash option
         ScanMode.BARCODE, // Scan mode
@@ -55,11 +61,10 @@ class _ScannerState extends State<Scanner> {
         children: [
           // Camera or scanning area
           Align(
-            alignment: Alignment.topCenter,
+            alignment: Alignment.center,
             child: Container(
               height: MediaQuery.of(context).size.height * 0.5,
               width: MediaQuery.of(context).size.width * 0.8,
-              margin: const EdgeInsets.only(top: 20),
               decoration: BoxDecoration(
                 border: Border.all(
                   color: _isScanned ? Colors.green : Colors.grey, // Green border on success
@@ -70,20 +75,29 @@ class _ScannerState extends State<Scanner> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
+                  const Center(
+                    child: Text(
+                      'Point the camera at a barcode',
+                      style: TextStyle(fontSize: 16, color: Colors.grey),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
                   if (_isScanned)
-                    const Icon(
-                      Icons.check_circle,
-                      color: Colors.green,
-                      size: 100,
-                    )
-                  else
-                    const Center(
-                      child: Text(
-                        'Point the camera at a barcode',
-                        style: TextStyle(fontSize: 16, color: Colors.grey),
-                        textAlign: TextAlign.center,
+                    const Positioned.fill(
+                      child: Icon(
+                        Icons.check_circle,
+                        color: Colors.green,
+                        size: 100,
                       ),
                     ),
+                  Align(
+                    alignment: Alignment.center,
+                    child: Container(
+                      width: MediaQuery.of(context).size.width * 0.6,
+                      height: 2,
+                      color: Colors.red, // Red line in the middle
+                    ),
+                  ),
                 ],
               ),
             ),

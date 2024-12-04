@@ -45,5 +45,13 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>Access to take a photo by camera</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Access to pick a photo</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Access to use Face ID</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Access to pick a photo</string>
 </dict>
 </plist>

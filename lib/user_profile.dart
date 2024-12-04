@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'login.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io';
 
 class UserProfile extends StatefulWidget {
   const UserProfile({super.key});
@@ -14,11 +17,30 @@ class _UserProfileState extends State<UserProfile> {
   String? _email;
   String? _profilePictureUrl;
   final TextEditingController _nameController = TextEditingController();
+  bool _isUploading = false;
 
   @override
   void initState() {
     super.initState();
     _fetchUserData();
+    _loadProfilePicture(); // Load cached profile picture URL
+  }
+
+  /// Load the profile picture URL from local storage
+  Future<void> _loadProfilePicture() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedUrl = prefs.getString('profilePictureUrl');
+    if (savedUrl != null) {
+      setState(() {
+        _profilePictureUrl = savedUrl;
+      });
+    }
+  }
+
+  /// Save the profile picture URL to local storage
+  Future<void> _saveProfilePicture(String url) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('profilePictureUrl', url);
   }
 
   /// Fetch the user's name and email from AWS Amplify
@@ -54,13 +76,72 @@ class _UserProfileState extends State<UserProfile> {
       setState(() {
         _name = _nameController.text;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Name updated successfully')),
-      );
     } catch (e) {
       debugPrint('Error updating name: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Failed to update name')),
+      );
+    }
+  }
+
+  /// Pick and upload a new profile picture
+  Future<void> _uploadProfilePicture(StateSetter modalSetState) async {
+    if (_isUploading) return;
+
+    setState(() {
+      _isUploading = true;
+    });
+
+    modalSetState(() {
+      _isUploading = true;
+    });
+
+    try {
+      final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+      if (pickedFile == null) {
+        setState(() {
+          _isUploading = false;
+        });
+        modalSetState(() {
+          _isUploading = false;
+        });
+        return;
+      }
+
+      final file = File(pickedFile.path);
+      const key = 'profile_picture.jpg';
+
+      // Upload the image to Amplify Storage
+      await Amplify.Storage.uploadFile(
+        local: file,
+        key: key,
+      );
+
+      // Fetch the new image URL
+      final url = (await Amplify.Storage.getUrl(key: key)).url;
+
+      setState(() {
+        _profilePictureUrl = url;
+        _isUploading = false;
+      });
+
+      modalSetState(() {
+        _profilePictureUrl = url;
+        _isUploading = false;
+      });
+
+      // Save the URL locally for persistence
+      await _saveProfilePicture(url);
+    } catch (e) {
+      setState(() {
+        _isUploading = false;
+      });
+      modalSetState(() {
+        _isUploading = false;
+      });
+      debugPrint('Error uploading profile picture: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to update profile picture')),
       );
     }
   }
@@ -73,78 +154,97 @@ class _UserProfileState extends State<UserProfile> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (BuildContext context) {
-        return Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Edit Profile',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-                const SizedBox(height: 16),
-                Center(
-                child: Stack(
-                  children: [
-                  CircleAvatar(
-                    radius: 40,
-                    backgroundImage: _profilePictureUrl != null
-                      ? NetworkImage(_profilePictureUrl!)
-                      : null,
-                    child: _profilePictureUrl == null
-                      ? const Icon(Icons.person, size: 40, color: Colors.grey)
-                      : null,
+        return StatefulBuilder(
+          // Use StatefulBuilder to dynamically update modal UI
+          builder: (BuildContext context, StateSetter modalSetState) {
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Edit Profile',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.blue,
-                      border: Border.all(color: Colors.white, width: 2),
+                  const SizedBox(height: 16),
+                  Center(
+                    child: Stack(
+                      children: [
+                        CircleAvatar(
+                          radius: 50,
+                          backgroundImage: _profilePictureUrl != null
+                              ? NetworkImage(_profilePictureUrl!)
+                              : null,
+                          child: _profilePictureUrl == null
+                              ? const Icon(Icons.person, size: 50, color: Colors.grey)
+                              : null,
+                        ),
+                        if (_isUploading)
+                          const Positioned.fill(
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                color: Colors.blue,
+                                strokeWidth: 2.0,
+                              ),
+                            ),
+                          ),
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: GestureDetector(
+                            onTap: () async {
+                              await _uploadProfilePicture(modalSetState);
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.blue,
+                              ),
+                              child: const Icon(
+                                Icons.edit,
+                                size: 20,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    child: const Icon(
-                      Icons.edit,
-                      size: 20,
-                      color: Colors.white,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text('Name', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      hintText: 'Enter your name',
                     ),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () {
+                      _updateName();
+                      Navigator.pop(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      minimumSize: const Size(double.infinity, 48),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
+                    child: const Text('Save', style: TextStyle(color: Colors.white)),
                   ),
-                  ],
-                ),
-                ),
-              const SizedBox(height: 16),
-              const Text('Name', style: TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  hintText: 'Enter your name',
-                ),
+                  const SizedBox(height: 24),
+                ],
               ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  _updateName();
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  minimumSize: const Size(double.infinity, 48),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text('Save', style: TextStyle(color: Colors.white)),
-              ),
-              const SizedBox(height: 24),
-            ],
-          ),
+            );
+          },
         );
       },
     );
@@ -178,7 +278,7 @@ class _UserProfileState extends State<UserProfile> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.9, // 90% of screen width
+                  width: MediaQuery.of(context).size.width * 0.9,
                   child: ElevatedButton(
                     onPressed: () async {
                       try {
@@ -234,36 +334,35 @@ class _UserProfileState extends State<UserProfile> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Centered Profile Section
             Center(
               child: Column(
-          children: [
-            CircleAvatar(
-              radius: 50,
-              backgroundImage: _profilePictureUrl != null
-            ? NetworkImage(_profilePictureUrl!)
-            : null,
-              child: _profilePictureUrl == null
-            ? const Icon(Icons.person, size: 50, color: Colors.grey)
-            : null,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              _name ?? 'No Name',
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _email ?? 'No Email',
-              style: const TextStyle(
-                fontSize: 16,
-                color: Colors.grey,
-              ),
-            ),
-          ],
+                children: [
+                  CircleAvatar(
+                    radius: 50,
+                    backgroundImage: _profilePictureUrl != null
+                        ? NetworkImage(_profilePictureUrl!)
+                        : null,
+                    child: _profilePictureUrl == null
+                        ? const Icon(Icons.person, size: 50, color: Colors.grey)
+                        : null,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    _name ?? 'No Name',
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _email ?? 'No Email',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 20),
@@ -272,18 +371,18 @@ class _UserProfileState extends State<UserProfile> {
             const Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-          Column(
-            children: [
-              Text('\$140.00', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              Text('Wallet', style: TextStyle(color: Colors.grey)),
-            ],
-          ),
-          Column(
-            children: [
-              Text('12', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              Text('Orders', style: TextStyle(color: Colors.grey)),
-            ],
-          ),
+                Column(
+                  children: [
+                    Text('\$140.00', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    Text('Wallet', style: TextStyle(color: Colors.grey)),
+                  ],
+                ),
+                Column(
+                  children: [
+                    Text('12', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    Text('Orders', style: TextStyle(color: Colors.grey)),
+                  ],
+                ),
               ],
             ),
             const Divider(height: 40),
@@ -320,8 +419,8 @@ class _UserProfileState extends State<UserProfile> {
             ListTile(
               leading: const Icon(Icons.power_settings_new, color: Colors.red),
               title: const Text(
-          'Log Out',
-          style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                'Log Out',
+                style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
               ),
               onTap: _showLogoutBottomSheet,
             ),
