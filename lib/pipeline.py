@@ -12,7 +12,7 @@ from sklearn.metrics import accuracy_score, confusion_matrix
 
 # Reading the train.csv by removing the 
 # last column since it's an empty column
-DATA_PATH = "/Users/pranavbelligundu/Documents/GitHub/medimatch/lib/dataset/Training.csv"
+DATA_PATH = "./dataset/Training.csv" #change this path
 data = pd.read_csv(DATA_PATH).dropna(axis = 1)
 
 # Checking whether the dataset is balanced or not
@@ -33,9 +33,6 @@ y = data.iloc[:, -1]
 X_train, X_test, y_train, y_test =train_test_split(
   X, y, test_size = 0.2, random_state = 24)
 
-#print(f"Train: {X_train.shape}, {y_train.shape}")
-#print(f"Test: {X_test.shape}, {y_test.shape}")
-
 # Defining scoring metric for k-fold cross validation
 def cv_scoring(estimator, X, y):
     return accuracy_score(y, estimator.predict(X))
@@ -53,22 +50,18 @@ for model_name in models:
     scores = cross_val_score(model, X, y, cv = 10, 
                              n_jobs = -1, 
                              scoring = cv_scoring)
-    #print("=="*30)
-    #print(model_name)
-    #print(f"Scores: {scores}")
-    #print(f"Mean Score: {np.mean(scores)}")
 
-#SVM model
+# SVM model
 svm_model = SVC()
 svm_model.fit(X_train, y_train)
 preds = svm_model.predict(X_test)
 
-# Training and testing Naive Bayes Classifier
+#Naive Bayes model
 nb_model = GaussianNB()
 nb_model.fit(X_train, y_train)
 preds = nb_model.predict(X_test)
 
-# Training and testing Random Forest Classifier
+#Random Forest Classifier model
 rf_model = RandomForestClassifier(random_state=18)
 rf_model.fit(X_train, y_train)
 preds = rf_model.predict(X_test)
@@ -123,6 +116,7 @@ def predictDisease(symptoms):
     input_data = [0] * len(data_dict["symptom_index"])
     for symptom in symptoms:
         index = data_dict["symptom_index"][symptom]
+        print(data_dict["symptom_index"])
         input_data[index] = 1
         
     # reshaping the input data and converting it
@@ -147,4 +141,5 @@ def predictDisease(symptoms):
     return predictions
 
 # Testing the function
-print(predictDisease("Itching,Skin Rash,Nodal Skin Eruptions"))
+# The inputs have to be exactly the same as the input file, only issue
+print(predictDisease("Abdominal Pain,Diarrhoea,Increased Appetite"))
