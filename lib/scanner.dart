@@ -56,6 +56,12 @@ class _ScannerState extends State<Scanner> {
       appBar: AppBar(
         title: const Text('Scanner'),
         backgroundColor: Colors.blue,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context); // Navigate back to the previous screen
+          },
+        ),
       ),
       body: Stack(
         children: [

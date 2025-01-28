@@ -3,11 +3,10 @@
 import 'package:flutter/material.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
-import 'package:amplify_storage_s3/amplify_storage_s3.dart';
 import 'login.dart';
 import 'user_profile.dart';
-import 'scanner.dart';
 import 'amplifyconfiguration.dart';
+import 'scanner.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,9 +14,7 @@ void main() async {
   // Configure Amplify
   try {
     final authPlugin = AmplifyAuthCognito();
-    final storagePlugin = AmplifyStorageS3();
-
-    await Amplify.addPlugins([authPlugin, storagePlugin]);
+    await Amplify.addPlugins([authPlugin]);
     await Amplify.configure(amplifyconfig);
   } catch (e) {
     print('Error configuring Amplify: $e');
@@ -34,8 +31,8 @@ class AppEntry extends StatelessWidget {
       final authSession = await Amplify.Auth.fetchAuthSession();
       return authSession.isSignedIn;
     } catch (e) {
-      debugPrint('Error checking login status: $e');
-      return false; // Explicitly return false if an error occurs
+      print('Error checking login status: $e');
+      return false; // Return false explicitly if an error occurs
     }
   }
 
@@ -59,6 +56,7 @@ class AppEntry extends StatelessWidget {
             ),
           );
         } else {
+          // Ensure we pass a non-null value for isLoggedIn
           final isLoggedIn = snapshot.data ?? false;
           return MyApp(isLoggedIn: isLoggedIn);
         }
@@ -78,45 +76,134 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'MediMatch',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: isLoggedIn ? const MyHomePage(title: 'HomePage',) : const Login(),
+      home: isLoggedIn ? const MyHomePage(title: 'Home Page') : const Login(),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required String title});
+  const MyHomePage({super.key, required this.title});
+
+  final String title;
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _selectedIndex = 1;
-  final double _opacity = 1.0;
-  String? _userName;
+// Dashboard Code
+class Dashboard extends StatelessWidget {
+  const Dashboard({super.key});
 
   @override
-  void initState() {
-    super.initState();
-    _fetchUserName();
-  }
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Dashboard"),
+      ),
+      body: const Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            // Welcome Section
+            WelcomeSection(userName: "User"), // Replace with dynamic username
 
-  /// Fetch the user's name from AWS Amplify
-  Future<void> _fetchUserName() async {
-    try {
-      final userAttributes = await Amplify.Auth.fetchUserAttributes();
-      final nameAttribute =
-        userAttributes.firstWhere((attr) => attr.userAttributeKey.key == 'name', orElse: () => const AuthUserAttribute(userAttributeKey: CognitoUserAttributeKey.custom('name'), value: 'User'));
-      setState(() {
-      _userName = nameAttribute.value.split(' ').first;
-      });
-    } catch (e) {
-      print('Error fetching user name: $e');
-      setState(() {
-        _userName = 'User';
-      });
-    }
+            SizedBox(height: 24),
+
+            // Symptoms Input Section
+            SymptomsInputSection(),
+          ],
+        ),
+      ),
+    );
   }
+}
+
+// Welcome Message in Dashboard
+class WelcomeSection extends StatelessWidget {
+  final String userName;
+
+  const WelcomeSection({super.key, required this.userName});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 100,
+          height: 100,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(50),
+            image: const DecorationImage(
+              image:
+                  AssetImage("lib/assets/doctor.jpg"), // Add your image to assets
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Text(
+            "Welcome $userName, what brings you in today?",
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// Symptom Input in Dashboard
+class SymptomsInputSection extends StatelessWidget {
+  const SymptomsInputSection({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "",
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          decoration: InputDecoration(
+            hintText: "Message Dr. MediMatch",
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          ),
+        ),
+        const SizedBox(height: 20),
+        Center(
+          child: ElevatedButton(
+            onPressed: () {
+              // Handle user input submission
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text(
+              "Submit",
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  int _selectedIndex = 1;
+  // Default to "Home" tab
+  double _opacity = 1.0;
 
   void _onItemTapped(int index) {
     setState(() {
@@ -181,48 +268,34 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  // unused for now but once we have content it will be used to make navbar transparent
+  // ignore: unused_element
+  void _onScroll(double offset) {
+    // Adjust opacity based on scroll offset
+    setState(() {
+      _opacity = (1 - offset / 200).clamp(0.5, 1.0);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100], // Slightly lighter off-white background
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header
-          Container(
-            color: const Color.fromARGB(255, 117, 232, 167), // Set the background color to white
-            width: double.infinity, // Ensure the container takes the full width
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 40.0), // Increased vertical padding
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 50), // Add white space
-                  Text(
-                    'Hello, ${_userName ?? 'User'}',
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
-                ],
-              ),
-            ),
-          ),
-          // Divider line between header and body
-          const Divider(
-            color: Colors.grey,
-            thickness: 1.0,
-          ),
-          // Scrollable body
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Container(
-                color: Colors.grey[100], // Slightly lighter off-white background
-              ),
-            ),
-          ),
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: Text(widget.title),
+      ),
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: const [
+          Center(child: Text("Search Page")),
+          Dashboard(),
+          Center(child: Text("Scan Page")),
+          Center(child: Text("Profile Placeholder")),
+          Center(child: Text("Settings Placehold")),
         ],
       ),
+      //
       bottomNavigationBar: Opacity(
         opacity: _opacity,
         child: BottomNavigationBar(

@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'services/auth_service.dart';
+import 'dart:async';
 
 class ConfirmationScreen extends StatefulWidget {
   final String email;
@@ -18,18 +19,17 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
       List.generate(6, (_) => TextEditingController());
   final AmplifyService _amplifyService = AmplifyService();
   String? _errorMessage;
-  bool _isResendingCode = false; // Flag to indicate if the code is being resent
-  String? _successMessage; // For showing success message after resending
+  bool _isResendingCode = false; 
+  String? _successMessage; 
+  int _resendCooldown = 30; 
+  Timer? _cooldownTimer; 
 
-  /// Combine all controllers' text to create the final code
   String getCode() {
     return _controllers.map((controller) => controller.text).join();
   }
 
-  /// Confirm the user's sign-up and automatically log them in.
   Future<void> confirmSignUp() async {
     final code = getCode();
-
     if (code.length < 6) {
       setState(() {
         _errorMessage = 'Please enter the complete confirmation code.';
@@ -38,7 +38,6 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
     }
 
     try {
-      // Confirm sign-up and automatically log the user in
       await _amplifyService.confirmSignUpAndRedirect(
         context,
         widget.email,
@@ -52,7 +51,22 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
     }
   }
 
-  /// Resend a new verification code to the user
+  void startCooldownTimer() {
+    _cooldownTimer?.cancel();
+    _resendCooldown = 30;
+    _cooldownTimer = Timer.periodic(
+      const Duration(seconds: 1),
+      (timer) {
+        setState(() {
+          _resendCooldown--;
+          if (_resendCooldown <= 0) {
+            timer.cancel();
+          }
+        });
+      },
+    );
+  }
+
   Future<void> resendCode() async {
     setState(() {
       _isResendingCode = true;
@@ -62,6 +76,7 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
 
     try {
       await _amplifyService.resendConfirmationCode(widget.email);
+      startCooldownTimer();
       setState(() {
         _successMessage = 'A new confirmation code has been sent to ${widget.email}';
       });
@@ -74,15 +89,6 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
         _isResendingCode = false;
       });
     }
-  }
-
-  @override
-  void dispose() {
-    // Dispose all controllers
-    for (var controller in _controllers) {
-      controller.dispose();
-    }
-    super.dispose();
   }
 
   @override
@@ -206,7 +212,7 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
                       'VERIFY & PROCEED',
                       style: TextStyle(fontSize: 16, color: Colors.white),
                     ),
-                  ),
+                  ), 
                 ],
               ),
             ),
