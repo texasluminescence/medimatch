@@ -4,6 +4,15 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
 
+import groq
+import json
+import logging
+
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 #--------------------------------- Random Forest Classifier -----------------------------
 
 df = pd.read_csv('DiseaseAndSymptoms.csv')
@@ -45,9 +54,9 @@ def predict_disease(symptoms_input):
 #print("Available symptoms in dataset:")
 #print(sorted(list(symptom_mapping.keys())))
 
-symptoms = [' continuous_sneezing',' congestion']  # need to transform user input into actual
-predicted = predict_disease(symptoms)
-print(f"Predicted Disease: {predicted}")
+#symptoms = [' continuous_sneezing',' congestion']  # need to transform user input into actual
+#predicted = predict_disease(symptoms)
+#print(f"Predicted Disease: {predicted}")
 
 #--------------------------------- Cross-val-score -------------------------------------
 
@@ -102,7 +111,74 @@ def predict_disease2(symptoms_input):
 #print("Available symptoms in dataset:")
 #print(sorted(list(symptom_mapping.keys())))
 
-symptoms = [' continuous_sneezing',' congestion']  # need to transform user input into actual
-predicted2 = predict_disease2(symptoms)
-print(f"Predicted Disease: {predicted2}")
+#symptoms = [' continuous_sneezing',' congestion']  # need to transform user input into actual
+#predicted2 = predict_disease2(symptoms)
+#print(f"Predicted Disease: {predicted2}")
 
+#----------------------------------- model cross verifcation -----------------------------------
+
+class DiseaseVerifier:
+    def __init__(self, api_key: str):
+        self.client = groq.Client(api_key=api_key)
+        self.logger = logging.getLogger(__name__)
+
+    def verify_prediction(self, symptoms: str, predicted_disease: str) -> dict:
+        # Construct a prompt that asks GPT to compare the symptoms with the predicted disease.
+        
+        #THIS PROMPT NEEDS TO BE REITERATED AND IMPROVED
+        verification_prompt = f"""
+        You are a medical expert. Analyze the following information:
+
+        Symptoms: {symptoms}
+        Predicted Disease: {predicted_disease}
+
+        Based on your medical knowledge, determine whether the predicted disease is a plausible diagnosis given the symptoms.
+        Please provide your answer as a JSON object in the following format:
+        {{
+            "prediction_valid": true or false,
+            "confidence": <number between 0 and 1 (rounded to two decimal places)>,
+            "explanation": "<a brief explanation>"
+        }}
+        """
+        
+        try:
+            response = self.client.chat.completions.create(
+                model="deepseek-r1-distill-llama-70b",
+                messages=[
+                    {"role": "system", "content": "You are a knowledgeable and unbiased medical diagnostic expert."},
+                    {"role": "user", "content": verification_prompt}
+                ],
+                response_format={"type": "json_object"},
+            )
+            
+            # Extract and parse the response content.
+            content = response.choices[0].message.content.strip()
+            result = json.loads(content)
+            return result
+        
+        except Exception as e:
+            self.logger.error(f"Error verifying disease prediction: {str(e)}")
+            # In case of error, return a default response.
+            return {
+                "prediction_valid": False,
+                "confidence": 0.0,
+                "explanation": "Verification failed due to an error."
+            }
+
+
+# Testing the function
+
+# The symptoms provided by the user (as a comma-separated string)
+symptoms = [' continuous_sneezing',' congestion']
+predicted_random_forest = predict_disease(symptoms)
+print(predicted_random_forest)
+predicted_decision_tree = predict_disease2(symptoms)
+print(predicted_decision_tree)
+
+# Initialize the verifier with your OpenAI API key
+API_KEY = os.environ.get("GROQ_API_KEY")
+verifier = DiseaseVerifier(API_KEY)
+
+# Verify the prediction
+verification_result = verifier.verify_prediction(symptoms, predicted_random_forest)
+print("Verification Result:", verification_result)
