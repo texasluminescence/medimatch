@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'services/auth_service.dart';
 import 'dart:async';
+import 'customize.dart';
 
 class ConfirmationScreen extends StatefulWidget {
   final String email;
@@ -43,6 +44,10 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
         widget.email,
         code,
         widget.password,
+      );
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const FirstTimeLogin()),
       );
     } catch (e) {
       setState(() {

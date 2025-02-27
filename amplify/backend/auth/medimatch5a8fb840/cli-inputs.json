@@ -2,7 +2,7 @@
   "version": "1",
   "cognitoConfig": {
     "identityPoolName": "medimatch5a8fb840_identitypool_5a8fb840",
-    "allowUnauthenticatedIdentities": true,
+    "allowUnauthenticatedIdentities": false,
     "resourceNameTruncated": "medima5a8fb840",
     "userPoolName": "medimatch5a8fb840_userpool_5a8fb840",
     "autoVerifiedAttributes": [
@@ -36,7 +36,7 @@
     "sharedId": "5a8fb840",
     "resourceName": "medimatch5a8fb840",
     "authSelections": "identityPoolAndUserPool",
-    "useDefault": "default",
+    "useDefault": "defaultSocial",
     "usernameAttributes": [
       "email"
     ],
@@ -57,6 +57,12 @@
       ]
     },
     "breakCircularDependency": true,
-    "dependsOn": []
+    "dependsOn": [],
+    "hostedUI": true,
+    "hostedUIDomainName": "medimatchce4f7d24-ce4f7d24",
+    "authProvidersUserPool": [],
+    "hostedUIProviderMeta": "[]",
+    "oAuthMetadata": "{\"AllowedOAuthFlows\":[\"code\"],\"AllowedOAuthScopes\":[\"phone\",\"email\",\"openid\",\"profile\",\"aws.cognito.signin.user.admin\"],\"CallbackURLs\":[\"com.medimatch.auth://\"],\"LogoutURLs\":[\"com.medimatch.auth://\"]}",
+    "authProviders": []
   }
 }

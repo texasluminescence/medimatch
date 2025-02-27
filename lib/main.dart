@@ -4,12 +4,18 @@ import 'package:flutter/material.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
 import 'login.dart';
-import 'user_profile.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'user_profile.dart' as medimatch;
 import 'amplifyconfiguration.dart';
 import 'scanner.dart';
 
+final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email']);
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Google Sign-In
+  await _googleSignIn.signInSilently();
 
   // Configure Amplify
   try {
@@ -214,7 +220,7 @@ class _MyHomePageState extends State<MyHomePage> {
       // Navigate to the profile page
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const UserProfile()),
+        MaterialPageRoute(builder: (context) => const medimatch.UserProfile()),
       ).then((_) {
         setState(() {
           _selectedIndex = 1; // Reset to Home tab
@@ -325,6 +331,7 @@ class _MyHomePageState extends State<MyHomePage> {
           selectedItemColor: Colors.blue,
           unselectedItemColor: Colors.grey,
           onTap: _onItemTapped,
+          // ignore: deprecated_member_use
           backgroundColor: Colors.white.withOpacity(0.9),
           type: BottomNavigationBarType.fixed,
         ),

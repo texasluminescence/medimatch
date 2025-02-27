@@ -1,7 +1,9 @@
-// ignore_for_file: use_build_context_synchronously
+// ignore_for_file: use_build_context_synchronously, unrelated_type_equality_checks
 
 import 'package:flutter/material.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:medimatch/customize.dart';
 import 'package:medimatch/services/auth_service.dart';
 import 'confirmation.dart';
 import 'main.dart';
@@ -17,6 +19,9 @@ class _LoginState extends State<Login> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+  // Google Sign-In
+  final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email']);
+
   Future<void> handleLogin() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
@@ -29,12 +34,40 @@ class _LoginState extends State<Login> {
     }
 
     try {
+      // Sign out any existing user
+      await Amplify.Auth.signOut();
+
+      // Attempt to sign in with the provided credentials
       final result = await Amplify.Auth.signIn(username: email, password: password);
       if (result.isSignedIn) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const MyHomePage(title: "Dashboard")),
-        );
+        // Check if the user is confirmed
+        final userAttributes = await Amplify.Auth.fetchUserAttributes();
+        final isConfirmed = userAttributes.any((attr) => attr.userAttributeKey == 'email_verified' && attr.value == 'true');
+
+        if (!isConfirmed) {
+          // Navigate to the confirmation page
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => ConfirmationScreen(email: email, password: password)),
+          );
+        } else {
+          // Check if it's the user's first login
+          final isFirstLogin = userAttributes.any((attr) => attr.userAttributeKey == 'custom:first_login' && attr.value == 'true');
+
+          if (isFirstLogin) {
+            // Navigate to the customize page
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const FirstTimeLogin()),
+            );
+          } else {
+            // Navigate to the home page
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const MyHomePage(title: "Dashboard")),
+            );
+          }
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Login failed. Please try again.')),
@@ -47,14 +80,41 @@ class _LoginState extends State<Login> {
     }
   }
 
-  void handleGoogleSignIn() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Google sign-in not implemented yet.')),
-    );
+  Future<void> handleGoogleSignIn() async {
+    try {
+      // Step 1: Sign in with Google
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        return;
+      }
+
+      // Step 2: Get the Google sign-in authentication details
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+
+      // Step 3: Retrieve the Google tokens (idToken and accessToken)
+      final String? idToken = googleAuth.idToken;
+      final String? accessToken = googleAuth.accessToken;
+
+      if (idToken == null || accessToken == null) {
+        return;
+      }
+
+      // If successful, navigate immediately to the Home page without prompting Cognito login
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const MyHomePage(title: "Dashboard")),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Google sign-in error: ${e.toString()}')),
+      );
+    }
+
+    // add functionality for creating accounts using google
   }
 
-  @override
-  Widget build(BuildContext context) {
+@override
+Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [
@@ -244,18 +304,30 @@ class _LoginState extends State<Login> {
 class DiagonalBackgroundPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
+    final paintMint = Paint()
       ..color = const Color(0xFF00FBB0) // Mint color
       ..style = PaintingStyle.fill;
 
-    final path = Path();
-    path.moveTo(0, size.height * 0.8);
-    path.lineTo(size.width, size.height * 0.4);
-    path.lineTo(size.width, 0);
-    path.lineTo(0, 0);
-    path.close();
+    final paintBlue = Paint()
+      ..color = const Color(0xFFDDE9F1) // Blue color
+      ..style = PaintingStyle.fill;
 
-    canvas.drawPath(path, paint);
+    final pathMint = Path();
+    pathMint.moveTo(0, size.height * 0.8);
+    pathMint.lineTo(size.width, size.height * 0.4);
+    pathMint.lineTo(size.width, 0);
+    pathMint.lineTo(0, 0);
+    pathMint.close();
+
+    final pathBlue = Path();
+    pathBlue.moveTo(0, size.height);
+    pathBlue.lineTo(size.width, size.height);
+    pathBlue.lineTo(size.width, size.height * 0.4);
+    pathBlue.lineTo(0, size.height * 0.8);
+    pathBlue.close();
+
+    canvas.drawPath(pathMint, paintMint);
+    canvas.drawPath(pathBlue, paintBlue);
   }
 
   @override
@@ -301,9 +373,6 @@ class _SignUpPageState extends State<SignUpPage> {
     }
 
     final result = await _amplifyService.signUp(email, password, name);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(result)),
-    );
 
     if (result.contains('Sign-Up Successful')) {
       // Redirect to the confirmation screen
