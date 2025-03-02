@@ -3,10 +3,12 @@
 import 'package:flutter/material.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
+import 'package:medimatch/continue_diagnosis.dart';
 import 'login.dart';
 import 'user_profile.dart';
 import 'amplifyconfiguration.dart';
 import 'scanner.dart';
+import 'colors.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -76,7 +78,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'MediMatch',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: isLoggedIn ? const MyHomePage(title: 'Home Page') : const Login(),
+      home: isLoggedIn ? const MyHomePage(title: 'MEDIMATCH') : const Login(),
     );
   }
 }
@@ -91,27 +93,71 @@ class MyHomePage extends StatefulWidget {
 }
 
 // Dashboard Code
-class Dashboard extends StatelessWidget {
-  const Dashboard({super.key});
+class Dashboard extends StatefulWidget {
+  const Dashboard({Key? key}) : super(key: key);
+
+  @override
+  State<Dashboard> createState() => _DashboardState();
+}
+
+class _DashboardState extends State<Dashboard> {
+  List<String> _selectedSymptoms = [];
+
+  // This callback will update the _selectedSymptoms from the child
+  void _updateSymptoms(List<String> newSymptoms) {
+    setState(() {
+      _selectedSymptoms = newSymptoms;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Dashboard"),
-      ),
-      body: const Padding(
-        padding: EdgeInsets.all(16.0),
+      appBar: AppBar(),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // Welcome Section
-            WelcomeSection(userName: "User"), // Replace with dynamic username
-
-            SizedBox(height: 24),
+            const WelcomeSection(userName: "User"), // Replace with dynamic username
+            const SizedBox(height: 24),
 
             // Symptoms Input Section
-            SymptomsInputSection(),
+           SymptomsInputSection(
+              onSymptomsChanged: _updateSymptoms,
+            ),
           ],
+        ),
+      ),
+
+    bottomNavigationBar: Padding(
+      // Continue button at the bottom 
+        padding: const EdgeInsets.all(16.0),
+        child: SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: () {
+              // pass in symptoms to next page
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => SymptomDetailsPage(
+                    symptoms: _selectedSymptoms,
+                  ),
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.mintColor,
+              padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text(
+              "Continue Diagnosis",
+              style: TextStyle(color: Colors.black, fontSize: 16),
+            ),
+          ),
         ),
       ),
     );
@@ -134,8 +180,8 @@ class WelcomeSection extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(50),
             image: const DecorationImage(
-              image:
-                  AssetImage("lib/assets/doctor.jpg"), // Add your image to assets
+              image: AssetImage(
+                  "lib/assets/doctor.jpg"),
               fit: BoxFit.cover,
             ),
           ),
@@ -143,7 +189,7 @@ class WelcomeSection extends StatelessWidget {
         const SizedBox(width: 16),
         Expanded(
           child: Text(
-            "Welcome $userName, what brings you in today?",
+            "Welcome $userName, what symptoms are you feeling today?",
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
           ),
         ),
@@ -153,45 +199,115 @@ class WelcomeSection extends StatelessWidget {
 }
 
 // Symptom Input in Dashboard
-class SymptomsInputSection extends StatelessWidget {
-  const SymptomsInputSection({super.key});
+class SymptomsInputSection extends StatefulWidget {
+    final ValueChanged<List<String>> onSymptomsChanged;
+  const SymptomsInputSection({Key? key, required this.onSymptomsChanged}) : super(key: key);
+  @override
+  _SymptomsInputSectionState createState() => _SymptomsInputSectionState();
+}
+
+class _SymptomsInputSectionState extends State<SymptomsInputSection> {
+  final TextEditingController _controller = TextEditingController();
+  final List<String> _selectedSymptoms = [];
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _addSymptom() {
+  final symptom = _controller.text.trim();
+  if (symptom.isNotEmpty) {
+    setState(() {
+      _selectedSymptoms.add(symptom);
+      _controller.clear();
+    });
+    widget.onSymptomsChanged(_selectedSymptoms);
+  }
+}
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          "",
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          decoration: InputDecoration(
-            hintText: "Message Dr. MediMatch",
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+        // user type symptom 
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: Colors.white,
+              width: 2,
             ),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          ),
+          padding: const EdgeInsets.all(8),
+          child: TextField(
+            controller: _controller,
+            decoration: InputDecoration(
+              hintText: "Search",
+              suffixIcon: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Image.asset(
+                  "lib/assets/search-icon.png",
+                  width: 12,
+                  height: 12,
+                ),
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Colors.grey),
+              ),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
           ),
         ),
+        const SizedBox(height: 12),
+
+        // Displayed symptoms
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxHeight: 150),
+          child: SingleChildScrollView(
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _selectedSymptoms.map((symptom) {
+                return Chip(
+                  backgroundColor: AppColors.mintColor,
+                  label: Text(symptom),
+                  deleteIcon: const Icon(Icons.close),
+                  onDeleted: () {
+                    setState(() {
+                      _selectedSymptoms.remove(symptom);
+                    });
+                    widget.onSymptomsChanged(_selectedSymptoms);
+                  },
+                );
+              }).toList(),
+            ),
+          ),
+        ),
+
         const SizedBox(height: 20),
         Center(
           child: ElevatedButton(
             onPressed: () {
-              // Handle user input submission
+              // adds symptom user typed to list
+              _addSymptom();
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+              backgroundColor: AppColors.mintColor,
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 48, vertical: 12),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
             child: const Text(
-              "Submit",
-              style: TextStyle(color: Colors.white, fontSize: 16),
+              "Add Symptom",
+              style: TextStyle(color: Colors.black, fontSize: 16),
             ),
           ),
         ),
@@ -282,8 +398,15 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
+        backgroundColor: AppColors.mintColor,
+        title: Text(
+          widget.title,
+          style: const TextStyle(
+            fontFamily: 'Mononoki',
+            fontWeight: FontWeight.bold,
+            fontSize: 48,
+          ),
+        ),
       ),
       body: IndexedStack(
         index: _selectedIndex,

@@ -36,6 +36,12 @@ PODS:
     - AWSCore (~> 2.33.0)
     - AWSPluginsCore (= 1.30.4)
     - AWSS3 (~> 2.33.0)
+  - AppAuth (1.7.6):
+    - AppAuth/Core (= 1.7.6)
+    - AppAuth/ExternalUserAgent (= 1.7.6)
+  - AppAuth/Core (1.7.6)
+  - AppAuth/ExternalUserAgent (1.7.6):
+    - AppAuth/Core
   - AWSAuthCore (2.33.10):
     - AWSCore (= 2.33.10)
   - AWSCognitoIdentityProvider (2.33.10):
@@ -57,6 +63,24 @@ PODS:
   - Flutter (1.0.0)
   - flutter_barcode_scanner (2.0.0):
     - Flutter
+  - google_sign_in_ios (0.0.1):
+    - AppAuth (>= 1.7.4)
+    - Flutter
+    - FlutterMacOS
+    - GoogleSignIn (~> 7.1)
+    - GTMSessionFetcher (>= 3.4.0)
+  - GoogleSignIn (7.1.0):
+    - AppAuth (< 2.0, >= 1.7.3)
+    - GTMAppAuth (< 5.0, >= 4.1.1)
+    - GTMSessionFetcher/Core (~> 3.3)
+  - GTMAppAuth (4.1.1):
+    - AppAuth/Core (~> 1.7)
+    - GTMSessionFetcher/Core (< 4.0, >= 3.3)
+  - GTMSessionFetcher (3.5.0):
+    - GTMSessionFetcher/Full (= 3.5.0)
+  - GTMSessionFetcher/Core (3.5.0)
+  - GTMSessionFetcher/Full (3.5.0):
+    - GTMSessionFetcher/Core
   - image_picker_ios (0.0.1):
     - Flutter
   - ObjectMapper (4.2.0)
@@ -79,6 +103,7 @@ DEPENDENCIES:
   - amplify_storage_s3_ios (from `.symlinks/plugins/amplify_storage_s3_ios/ios`)
   - Flutter (from `Flutter`)
   - flutter_barcode_scanner (from `.symlinks/plugins/flutter_barcode_scanner/ios`)
+  - google_sign_in_ios (from `.symlinks/plugins/google_sign_in_ios/darwin`)
   - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
@@ -88,6 +113,7 @@ SPEC REPOS:
   trunk:
     - Amplify
     - AmplifyPlugins
+    - AppAuth
     - AWSAuthCore
     - AWSCognitoIdentityProvider
     - AWSCognitoIdentityProviderASF
@@ -95,6 +121,9 @@ SPEC REPOS:
     - AWSMobileClient
     - AWSPluginsCore
     - AWSS3
+    - GoogleSignIn
+    - GTMAppAuth
+    - GTMSessionFetcher
     - ObjectMapper
     - SwiftFormat
     - SwiftLint
@@ -112,6 +141,8 @@ EXTERNAL SOURCES:
     :path: Flutter
   flutter_barcode_scanner:
     :path: ".symlinks/plugins/flutter_barcode_scanner/ios"
+  google_sign_in_ios:
+    :path: ".symlinks/plugins/google_sign_in_ios/darwin"
   image_picker_ios:
     :path: ".symlinks/plugins/image_picker_ios/ios"
   path_provider_foundation:
@@ -128,6 +159,7 @@ SPEC CHECKSUMS:
   amplify_flutter_ios: 4389fb31392bf559fead6ac2e3fd2f7ec8e44beb
   amplify_storage_s3_ios: 0656483cb561c06b67bd0837830515cf4415b9e9
   AmplifyPlugins: 1335f0919aa07329df58685a020f2311c75a5176
+  AppAuth: d4f13a8fe0baf391b2108511793e4b479691fb73
   AWSAuthCore: dfaed2a858cdb320c6c9c5c94c4de97bbaa76dad
   AWSCognitoIdentityProvider: 4cb2d157236eb5da17c8acc18e6c2e3b7b3a739e
   AWSCognitoIdentityProviderASF: af81ced9e3d1e14634e33abbd2343c2c9b5c8138
@@ -137,6 +169,10 @@ SPEC CHECKSUMS:
   AWSS3: 63eaa9993edea13160eec1f032978b179a2807fa
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   flutter_barcode_scanner: 7a1144744c28dc0c57a8de7218ffe5ec59a9e4bf
+  google_sign_in_ios: 4111e87aa5e24a4404f00ea13479f35e571969cc
+  GoogleSignIn: d4281ab6cf21542b1cfaff85c191f230b399d2db
+  GTMAppAuth: f69bd07d68cd3b766125f7e072c45d7340dea0de
+  GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
   image_picker_ios: c560581cceedb403a6ff17f2f816d7fea1421fc1
   ObjectMapper: 1eb41f610210777375fa806bf161dc39fb832b81
   path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
