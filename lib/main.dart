@@ -102,11 +102,8 @@ class Dashboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Dashboard"),
-      ),
-      body: const Padding(
+    return const Scaffold(
+      body: Padding(
         padding: EdgeInsets.all(16.0),
         child: Column(
           children: [
@@ -294,7 +291,7 @@ class _MyHomePageState extends State<MyHomePage> {
       body: IndexedStack(
         index: _selectedIndex,
         children: const [
-          Center(child: Text("Search Page")),
+          Center(child: Text("Calendar Page")),
           Dashboard(),
           Center(child: Text("Scan Page")),
           Center(child: Text("Profile Placeholder")),
@@ -307,8 +304,8 @@ class _MyHomePageState extends State<MyHomePage> {
         child: BottomNavigationBar(
           items: const <BottomNavigationBarItem>[
             BottomNavigationBarItem(
-              icon: Icon(Icons.search),
-              label: 'Search',
+              icon: Icon(Icons.calendar_month),
+              label: 'Calendar',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.home),

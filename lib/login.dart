@@ -38,21 +38,27 @@ class _LoginState extends State<Login> {
       await Amplify.Auth.signOut();
 
       // Attempt to sign in with the provided credentials
-      final result = await Amplify.Auth.signIn(username: email, password: password);
+      final result =
+          await Amplify.Auth.signIn(username: email, password: password);
       if (result.isSignedIn) {
         // Check if the user is confirmed
         final userAttributes = await Amplify.Auth.fetchUserAttributes();
-        final isConfirmed = userAttributes.any((attr) => attr.userAttributeKey == 'email_verified' && attr.value == 'true');
+        final isConfirmed = userAttributes.any((attr) =>
+            attr.userAttributeKey == 'email_verified' && attr.value == 'true');
 
         if (!isConfirmed) {
           // Navigate to the confirmation page
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => ConfirmationScreen(email: email, password: password)),
+            MaterialPageRoute(
+                builder: (context) =>
+                    ConfirmationScreen(email: email, password: password)),
           );
         } else {
           // Check if it's the user's first login
-          final isFirstLogin = userAttributes.any((attr) => attr.userAttributeKey == 'custom:first_login' && attr.value == 'true');
+          final isFirstLogin = userAttributes.any((attr) =>
+              attr.userAttributeKey == 'custom:first_login' &&
+              attr.value == 'true');
 
           if (isFirstLogin) {
             // Navigate to the customize page
@@ -64,7 +70,8 @@ class _LoginState extends State<Login> {
             // Navigate to the home page
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => const MyHomePage(title: "Dashboard")),
+              MaterialPageRoute(
+                  builder: (context) => const MyHomePage(title: "Home Page")),
             );
           }
         }
@@ -89,7 +96,8 @@ class _LoginState extends State<Login> {
       }
 
       // Step 2: Get the Google sign-in authentication details
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
 
       // Step 3: Retrieve the Google tokens (idToken and accessToken)
       final String? idToken = googleAuth.idToken;
@@ -102,7 +110,8 @@ class _LoginState extends State<Login> {
       // If successful, navigate immediately to the Home page without prompting Cognito login
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const MyHomePage(title: "Dashboard")),
+        MaterialPageRoute(
+            builder: (context) => const MyHomePage(title: "Home Page")),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -113,8 +122,8 @@ class _LoginState extends State<Login> {
     // add functionality for creating accounts using google
   }
 
-@override
-Widget build(BuildContext context) {
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [
@@ -175,7 +184,8 @@ Widget build(BuildContext context) {
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide.none,
                               ),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 12),
                             ),
                           ),
                           const SizedBox(height: 20),
@@ -190,7 +200,8 @@ Widget build(BuildContext context) {
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide.none,
                               ),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 12),
                             ),
                           ),
                           const SizedBox(height: 20),
@@ -198,7 +209,8 @@ Widget build(BuildContext context) {
                             onPressed: handleLogin,
                             style: ElevatedButton.styleFrom(
                               minimumSize: const Size(double.infinity, 48),
-                              backgroundColor: const Color(0xFF00FBB0), // Mint color
+                              backgroundColor:
+                                  const Color(0xFF00FBB0), // Mint color
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
@@ -213,22 +225,23 @@ Widget build(BuildContext context) {
                             ),
                           ),
                           const SizedBox(height: 16),
-                            GestureDetector(
+                          GestureDetector(
                             onTap: () {
                               Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => ForgotPasswordPage()),
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => ForgotPasswordPage()),
                               );
                             },
                             child: const Text(
                               "Forgot Password?",
                               style: TextStyle(
-                              color: Colors.blue,
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
+                                color: Colors.blue,
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                            ),
+                          ),
                           const SizedBox(height: 24),
                           Row(
                             children: [
@@ -261,7 +274,8 @@ Widget build(BuildContext context) {
                             ),
                             label: const Text(
                               "Sign in with Google",
-                              style: TextStyle(color: Color(0xFF616161)), // Grey color
+                              style: TextStyle(
+                                  color: Color(0xFF616161)), // Grey color
                             ),
                           ),
                         ],
@@ -276,7 +290,8 @@ Widget build(BuildContext context) {
                           onTap: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) => const SignUpPage()),
+                              MaterialPageRoute(
+                                  builder: (context) => const SignUpPage()),
                             );
                           },
                           child: const Text(
@@ -347,7 +362,8 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
   final AmplifyService _amplifyService = AmplifyService();
 
   String? _errorMessage;
@@ -358,7 +374,10 @@ class _SignUpPageState extends State<SignUpPage> {
     final password = _passwordController.text.trim();
     final confirmPassword = _confirmPasswordController.text.trim();
 
-    if (name.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
+    if (name.isEmpty ||
+        email.isEmpty ||
+        password.isEmpty ||
+        confirmPassword.isEmpty) {
       setState(() {
         _errorMessage = 'Please fill in all fields.';
       });
@@ -379,7 +398,8 @@ class _SignUpPageState extends State<SignUpPage> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => ConfirmationScreen(email: email, password: password),
+          builder: (context) =>
+              ConfirmationScreen(email: email, password: password),
         ),
       );
     }
@@ -388,15 +408,14 @@ class _SignUpPageState extends State<SignUpPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          // Mint diagonal background
-          Positioned.fill(
-            child: CustomPaint(
-              painter: DiagonalBackgroundPainter(),
-            ),
+      body: Stack(children: [
+        // Mint diagonal background
+        Positioned.fill(
+          child: CustomPaint(
+            painter: DiagonalBackgroundPainter(),
           ),
-          GestureDetector(
+        ),
+        GestureDetector(
           onTap: () {
             FocusScope.of(context).unfocus();
           },
@@ -406,20 +425,30 @@ class _SignUpPageState extends State<SignUpPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Image.asset(
-                    'lib/assets/medimatch-logo.png',
-                    height: 150,
-                    width: 150,
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    "MEDIMATCH",
-                      style: TextStyle(
-                      fontSize: 56,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF365463),
-                    ),
-                    textAlign: TextAlign.center,
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final logoHeight = constraints.maxHeight * 0.2;
+                      final logoWidth = constraints.maxWidth * 0.4;
+                      return Column(
+                        children: [
+                          Image.asset(
+                            'lib/assets/medimatch-logo.png',
+                            height: logoHeight,
+                            width: logoWidth,
+                          ),
+                          const SizedBox(height: 20),
+                          const Text(
+                            "MEDIMATCH",
+                            style: TextStyle(
+                              fontSize: 56,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF365463),
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      );
+                    },
                   ),
                   const SizedBox(height: 30),
                   Container(
@@ -451,7 +480,8 @@ class _SignUpPageState extends State<SignUpPage> {
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide.none,
                               ),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 12),
                             ),
                           ),
                         ),
@@ -470,7 +500,8 @@ class _SignUpPageState extends State<SignUpPage> {
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide.none,
                               ),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 12),
                             ),
                           ),
                         ),
@@ -490,7 +521,8 @@ class _SignUpPageState extends State<SignUpPage> {
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide.none,
                               ),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 12),
                             ),
                           ),
                         ),
@@ -510,7 +542,8 @@ class _SignUpPageState extends State<SignUpPage> {
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide.none,
                               ),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 12),
                             ),
                           ),
                         ),
@@ -600,9 +633,10 @@ class ForgotPasswordPage extends StatelessWidget {
                     Image.asset(
                       'lib/assets/medimatch-logo.png', // Path to the logo
                       height: 150, // Adjust height as needed
-                      width: 150,  // Adjust width as needed
+                      width: 150, // Adjust width as needed
                     ),
-                    const SizedBox(height: 24), // Add spacing between logo and white block
+                    const SizedBox(
+                        height: 24), // Add spacing between logo and white block
                     Container(
                       padding: const EdgeInsets.all(24.0),
                       margin: const EdgeInsets.symmetric(vertical: 24.0),
@@ -622,7 +656,8 @@ class ForgotPasswordPage extends StatelessWidget {
                         children: [
                           const Text(
                             "Forgot Password?",
-                            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                                fontSize: 24, fontWeight: FontWeight.bold),
                             textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 16),
@@ -631,11 +666,13 @@ class ForgotPasswordPage extends StatelessWidget {
                             children: [
                               const Text(
                                 "Remember your password? ",
-                                style: TextStyle(fontSize: 16, color: Colors.black),
+                                style: TextStyle(
+                                    fontSize: 16, color: Colors.black),
                               ),
                               GestureDetector(
                                 onTap: () {
-                                  Navigator.pop(context); // Redirect back to the login page
+                                  Navigator.pop(
+                                      context); // Redirect back to the login page
                                 },
                                 child: const Text(
                                   "Login Here",
@@ -664,7 +701,8 @@ class ForgotPasswordPage extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide.none,
                               ),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 12),
                             ),
                             keyboardType: TextInputType.emailAddress,
                           ),
@@ -676,27 +714,38 @@ class ForgotPasswordPage extends StatelessWidget {
                                 final email = emailController.text.trim();
                                 if (email.isEmpty) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text("Please enter an email address.")),
+                                    const SnackBar(
+                                        content: Text(
+                                            "Please enter an email address.")),
                                   );
                                   return;
                                 }
-                                if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}\$').hasMatch(email)) {
+                                if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                                    .hasMatch(email)) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text("Please enter a valid email address.")),
+                                    const SnackBar(
+                                        content: Text(
+                                            "Please enter a valid email address.")),
                                   );
                                   return;
                                 }
 
                                 try {
-                                  await Amplify.Auth.resetPassword(username: email);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text("Password reset email sent to $email"),
+                                  await Amplify.Auth.resetPassword(
+                                      username: email);
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          ResetPasswordConfirmationPage(
+                                              email: email),
                                     ),
                                   );
                                 } catch (e) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text("Error: ${e.toString()}")),
+                                    SnackBar(
+                                        content:
+                                            Text("Error: ${e.toString()}")),
                                   );
                                 }
                               },
