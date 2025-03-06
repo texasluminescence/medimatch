@@ -129,12 +129,36 @@ class _UserProfileState extends State<UserProfile> {
                       ),
                     ),
 
+                    // Container for conditions
+                    // TODO: Implement conditon blocks as seen in wireframe
+
 
                   ],
                 ),
               ),
 
+              const SizedBox(height: 16),
 
+              ElevatedButton(
+                onPressed: () {
+
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF00FBB0),
+                  minimumSize: const Size(double.infinity, 50),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text(
+                  'Save Changes',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Color.fromRGBO(54, 75, 96, 1)
+                  )
+                ),
+              )
             ],
           ),
         ),
