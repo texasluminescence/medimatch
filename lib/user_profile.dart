@@ -14,6 +14,13 @@ class UserProfile extends StatefulWidget {
 
 class _UserProfileState extends State<UserProfile> {
   // Need potential state variables
+  List<String> selectedConditions = ["Condition 1", "Condition 2", "Condition 3", "Condition 4"];
+
+  void removeCondition(String condition) {
+    setState(() {
+      selectedConditions.remove(condition);
+    });
+  }
 
   @override
   void initState() {
@@ -72,17 +79,28 @@ class _UserProfileState extends State<UserProfile> {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(18),
                 ),
-                child: const Column(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
 
                     // DOB Field
-                    Text('Date of Birth'),
+                    const Text(
+                      'Date of Birth', 
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                     TextField(
                       decoration: InputDecoration(
                         hintText: 'Select',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
+
+                    const SizedBox(height: 12),
 
                     Row(
                       children: [
@@ -92,27 +110,45 @@ class _UserProfileState extends State<UserProfile> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Height'),
+                                const Text(
+                                  'Height', 
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
                               TextField(
                                 decoration: InputDecoration(
                                   hintText: 'Select',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
                                 ),
                               ),
                             ],
                           ),
                         ),
 
-                        SizedBox(width: 16),
+                        const SizedBox(width: 16),
 
                         // Weight Field
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Weight'),
+                              const Text(
+                                'Weight',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
                               TextField(
                                 decoration: InputDecoration(
                                   hintText: 'Type',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
                                 ),
                               )
                             ],
@@ -122,16 +158,49 @@ class _UserProfileState extends State<UserProfile> {
                       ],
                     ),
 
-                    Text('Pre-Existing Conditons'),
+                    const SizedBox(height: 12),
+
+                    const Text(
+                      'Pre-Existing Conditons',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                     TextField(
                       decoration: InputDecoration(
                         hintText: 'Search',
+                        suffixIcon: const Icon(Icons.search),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
 
                     // Container for conditions
-                    // TODO: Implement conditon blocks as seen in wireframe
+                    const SizedBox(height: 8),
 
+                    // Display condition blocks
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8, // Ensures wrapping behavior
+                      children: selectedConditions.map((condition) => 
+                        ElevatedButton(
+                          onPressed: () => removeCondition(condition),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF00FBB0), // Bright green color
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30), // Rounded buttons
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          ),
+                          child: Text(
+                            condition,
+                            style: const TextStyle(color: Color.fromRGBO(54, 75, 96, 1)),
+                          ),
+                        ),
+                      ).toList(),
+                    )
 
                   ],
                 ),
@@ -155,6 +224,7 @@ class _UserProfileState extends State<UserProfile> {
                   'Save Changes',
                   style: TextStyle(
                     fontSize: 16,
+                    fontWeight: FontWeight.w500,
                     color: Color.fromRGBO(54, 75, 96, 1)
                   )
                 ),
