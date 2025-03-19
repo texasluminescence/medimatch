@@ -30,7 +30,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
+  mongo_dart: ^0.9.1
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -83,7 +83,7 @@ flutter:
     - lib/assets/doctor.jpg
     - lib/assets/medimatch-logo.png
     - lib/assets/search-icon.png
-    # - .env
+    - .env
 
 flutter_icons:
   ios: true

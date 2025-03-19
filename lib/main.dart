@@ -9,6 +9,7 @@ import 'user_profile.dart';
 import 'amplifyconfiguration.dart';
 import 'scanner.dart';
 import 'colors.dart';
+import 'mongo_db_connection.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,6 +22,9 @@ void main() async {
   } catch (e) {
     print('Error configuring Amplify: $e');
   }
+
+  // load MongoDB
+  await connectToMongo();
 
   runApp(const AppEntry());
 }
@@ -136,15 +140,27 @@ class _DashboardState extends State<Dashboard> {
           width: double.infinity,
           child: ElevatedButton(
             onPressed: () {
-              // pass in symptoms to next page
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => SymptomDetailsPage(
-                    symptoms: _selectedSymptoms,
+              // ensure user inputs something
+              if (_selectedSymptoms.isEmpty) {
+                // show a warning message
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Please select at least one symptom.'),
+                    backgroundColor: Colors.red,
+                    duration: Duration(seconds: 2),
                   ),
-                ),
-              );
+                );
+              } else {
+                // pass in symptoms to next page
+                  Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => SymptomDetailsPage(
+                      symptoms: _selectedSymptoms,
+                    ),
+                  ),
+                );
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.mintColor,
