@@ -117,30 +117,82 @@ def predict_disease2(symptoms_input):
 
 #----------------------------------- model cross verifcation -----------------------------------
 
+import json
+import pandas as pd
+import logging
+import groq
+
 class DiseaseVerifier:
-    def __init__(self, api_key: str):
+    def __init__(self, api_key: str, dataset_path: str):
         self.client = groq.Client(api_key=api_key)
         self.logger = logging.getLogger(__name__)
+        self.dataset_path = dataset_path
+        self.disease_symptom_mapping = self._load_disease_symptom_mapping()
 
-    def verify_prediction(self, symptoms: str, predicted_disease: str) -> dict:
-        # Construct a prompt that asks GPT to compare the symptoms with the predicted disease.
-        
-        #THIS PROMPT NEEDS TO BE REITERATED AND IMPROVED
+    def _load_disease_symptom_mapping(self):
+        """
+        Loads the disease-to-symptom mapping from the dataset and returns it as a dictionary.
+        """
+        try:
+            df = pd.read_csv(self.dataset_path)
+            
+            disease_symptom_mapping = {}
+
+            for _, row in df.iterrows():
+                disease = row["Disease"]
+                symptoms = row.drop("Disease").dropna().tolist()  # Remove NaNs and extract symptoms
+                
+                if disease in disease_symptom_mapping:
+                    disease_symptom_mapping[disease].update(symptoms)  # Add unique symptoms
+                else:
+                    disease_symptom_mapping[disease] = set(symptoms)
+
+            # Convert sets to sorted lists for consistency
+            return {disease: sorted(list(symptoms)) for disease, symptoms in disease_symptom_mapping.items()}
+
+        except Exception as e:
+            self.logger.error(f"Error loading dataset: {str(e)}")
+            return {}
+
+    def verify_prediction(self, symptoms: list, predicted_disease: str) -> dict:
+        """
+        Verifies the predicted disease against symptoms using an LLM.
+        """
+        # Convert disease-to-symptoms mapping into a JSON-friendly format
+        disease_symptom_summary = json.dumps(self.disease_symptom_mapping, indent=2)
+
+        # Construct a refined verification prompt
         verification_prompt = f"""
-        You are a medical expert. Analyze the following information:
+        You are an experienced medical diagnostic AI with specialized knowledge in disease identification. 
+        Your task is to assess whether the predicted disease is a **plausible** diagnosis based on the provided symptoms.
 
-        Symptoms: {symptoms}
-        Predicted Disease: {predicted_disease}
+        ### **Dataset Reference**
+        To assist you, here is a mapping of known diseases and their associated symptoms:
+        {disease_symptom_summary}
 
-        Based on your medical knowledge, determine whether the predicted disease is a plausible diagnosis given the symptoms.
-        Please provide your answer as a JSON object in the following format:
+        ### **Guidelines for Verification**
+        1. **Compare the provided symptoms** with the symptoms listed for the predicted disease.
+        2. If the symptoms **strongly match**, return `prediction_valid: true` with **high confidence** (0.8–1.0).
+        3. If there is a **partial match** (some missing or unexpected symptoms), return a **moderate confidence score** (0.4–0.7) and explain the discrepancy.
+        4. If the symptoms **do not match at all**, return `prediction_valid: false` with **low confidence** (0.0–0.3), explaining the inconsistency.
+        5. If the predicted disease seems incorrect, **suggest a more likely disease** based on the dataset.
+
+        ### **Input Data**
+        - **Symptoms Provided by User:** {symptoms}
+        - **Predicted Disease from AI Model:** {predicted_disease}
+
+        ### **Output Format (strict JSON)**
+        Your response must be a JSON object in the exact format below:
         {{
             "prediction_valid": true or false,
-            "confidence": <number between 0 and 1 (rounded to two decimal places)>,
-            "explanation": "<a brief explanation>"
+            "confidence": <number between 0 and 1, rounded to two decimal places>,
+            "explanation": "<A concise but medically sound explanation>",
+            "suggested_disease": "<If incorrect, suggest a more likely disease. Otherwise, return 'N/A'>"
         }}
+
+        Ensure that your response is **medically accurate, concise, and based on the dataset provided**.
         """
-        
+
         try:
             response = self.client.chat.completions.create(
                 model="deepseek-r1-distill-llama-70b",
@@ -150,23 +202,23 @@ class DiseaseVerifier:
                 ],
                 response_format={"type": "json_object"},
             )
-            
+
             # Extract and parse the response content.
             content = response.choices[0].message.content.strip()
             result = json.loads(content)
             return result
-        
+
         except Exception as e:
             self.logger.error(f"Error verifying disease prediction: {str(e)}")
-            # In case of error, return a default response.
             return {
                 "prediction_valid": False,
                 "confidence": 0.0,
-                "explanation": "Verification failed due to an error."
+                "explanation": "Verification failed due to an error.",
+                "suggested_disease": "N/A"
             }
 
 
-# Testing the function
+#TESTING
 
 # The symptoms provided by the user (as a comma-separated string)
 symptoms = [' continuous_sneezing',' congestion']
@@ -177,7 +229,8 @@ print(predicted_decision_tree)
 
 # Initialize the verifier with your OpenAI API key
 API_KEY = os.environ.get("GROQ_API_KEY")
-verifier = DiseaseVerifier(API_KEY)
+dataset_path = 'DiseaseAndSymptoms.csv'
+verifier = DiseaseVerifier(API_KEY,dataset_path)
 
 # Verify the prediction
 verification_result = verifier.verify_prediction(symptoms, predicted_random_forest)
