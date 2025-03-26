@@ -34,46 +34,32 @@ class _LoginState extends State<Login> {
     }
 
     try {
-      // Sign out any existing user
+      // Sign out any existing user first.
       await Amplify.Auth.signOut();
 
-      // Attempt to sign in with the provided credentials
+      // Attempt to sign in with the provided credentials.
       final result =
           await Amplify.Auth.signIn(username: email, password: password);
       if (result.isSignedIn) {
-        // Check if the user is confirmed
+        // Fetch the user attributes to see if this is a new user.
         final userAttributes = await Amplify.Auth.fetchUserAttributes();
-        final isConfirmed = userAttributes.any((attr) =>
-            attr.userAttributeKey == 'email_verified' && attr.value == 'true');
+        final isFirstLogin = userAttributes.any((attr) =>
+            attr.userAttributeKey == 'custom:first_login' &&
+            attr.value == 'true');
 
-        if (!isConfirmed) {
-          // Navigate to the confirmation page
+        if (isFirstLogin) {
+          // Navigate to the customize page for first-time login.
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const FirstTimeLogin()),
+          );
+        } else {
+          // Otherwise, navigate directly to the home page.
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-                builder: (context) =>
-                    ConfirmationScreen(email: email, password: password)),
+                builder: (context) => const MyHomePage(title: "Home Page")),
           );
-        } else {
-          // Check if it's the user's first login
-          final isFirstLogin = userAttributes.any((attr) =>
-              attr.userAttributeKey == 'custom:first_login' &&
-              attr.value == 'true');
-
-          if (isFirstLogin) {
-            // Navigate to the customize page
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const FirstTimeLogin()),
-            );
-          } else {
-            // Navigate to the home page
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => const MyHomePage(title: "Home Page")),
-            );
-          }
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
