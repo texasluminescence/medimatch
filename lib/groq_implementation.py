@@ -160,6 +160,7 @@ class DiseaseVerifier:
         """
         # Convert disease-to-symptoms mapping into a JSON-friendly format
         disease_symptom_summary = json.dumps(self.disease_symptom_mapping, indent=2)
+        print(disease_symptom_summary)
 
         # Construct a refined verification prompt
         verification_prompt = f"""
@@ -167,8 +168,8 @@ class DiseaseVerifier:
         Your task is to assess whether the predicted disease is a **plausible** diagnosis based on the provided symptoms.
 
         ### **Dataset Reference**
-        To assist you, here is a mapping of known diseases and their associated symptoms:
-        {disease_symptom_summary}
+        To assist you, here is a mapping of known diseases and their associated symptoms. Don't completely base your thinking on this data, 
+        use it for context: {disease_symptom_summary}
 
         ### **Guidelines for Verification**
         1. **Compare the provided symptoms** with the symptoms listed for the predicted disease.
@@ -232,6 +233,24 @@ API_KEY = os.environ.get("GROQ_API_KEY")
 dataset_path = 'DiseaseAndSymptoms.csv'
 verifier = DiseaseVerifier(API_KEY,dataset_path)
 
+testing = pd.read_csv('test_symptoms_sample.csv')
+
+
+for index, row in testing.iterrows():
+    # Extract non-null symptom values into a list
+    symptoms = [' ' + str(symptom).strip() for symptom in row.tolist() if pd.notna(symptom)]
+    print(symptoms)
+    
+    predicted_random_forest = predict_disease(symptoms)
+    
+    # Verify the prediction
+    verification_result = verifier.verify_prediction(symptoms, predicted_random_forest)
+
+    print(f"Row {index+1} Symptoms: {symptoms}")
+    print("Prediction:", predicted_random_forest)
+    print("Verification Result:", verification_result)
+    print("-" * 50)
+
 # Verify the prediction
-verification_result = verifier.verify_prediction(symptoms, predicted_random_forest)
-print("Verification Result:", verification_result)
+#verification_result = verifier.verify_prediction(symptoms, predicted_random_forest)
+#print("Verification Result:", verification_result)
