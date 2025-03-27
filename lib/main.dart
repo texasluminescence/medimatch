@@ -3,11 +3,14 @@
 import 'package:flutter/material.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
+import 'package:medimatch/continue_diagnosis.dart';
 import 'login.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'user_profile.dart' as medimatch;
 import 'amplifyconfiguration.dart';
 import 'scanner.dart';
+import 'colors.dart';
+import 'mongo_db_connection.dart';
 
 final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email']);
 
@@ -25,6 +28,9 @@ void main() async {
   } catch (e) {
     print('Error configuring Amplify: $e');
   }
+
+  // load MongoDB
+  await connectToMongo();
 
   runApp(const AppEntry());
 }
@@ -82,7 +88,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'MediMatch',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: isLoggedIn ? const MyHomePage(title: 'Home Page') : const Login(),
+      home: isLoggedIn ? const MyHomePage(title: 'MEDIMATCH') : const Login(),
     );
   }
 }
@@ -97,24 +103,83 @@ class MyHomePage extends StatefulWidget {
 }
 
 // Dashboard Code
-class Dashboard extends StatelessWidget {
+class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
 
   @override
+  State<Dashboard> createState() => _DashboardState();
+}
+
+class _DashboardState extends State<Dashboard> {
+  List<String> _selectedSymptoms = [];
+
+  // This callback will update the _selectedSymptoms from the child
+  void _updateSymptoms(List<String> newSymptoms) {
+    setState(() {
+      _selectedSymptoms = newSymptoms;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
+      appBar: AppBar(),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // Welcome Section
-            WelcomeSection(userName: "User"), // Replace with dynamic username
-
-            SizedBox(height: 24),
+            const WelcomeSection(userName: "User"), // Replace with dynamic username
+            const SizedBox(height: 24),
 
             // Symptoms Input Section
-            SymptomsInputSection(),
+           SymptomsInputSection(
+              onSymptomsChanged: _updateSymptoms,
+            ),
           ],
+        ),
+      ),
+
+    bottomNavigationBar: Padding(
+      // Continue button at the bottom 
+        padding: const EdgeInsets.all(16.0),
+        child: SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: () {
+              // ensure user inputs something
+              if (_selectedSymptoms.isEmpty) {
+                // show a warning message
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Please select at least one symptom.'),
+                    backgroundColor: Colors.red,
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              } else {
+                // pass in symptoms to next page
+                  Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => SymptomDetailsPage(
+                      symptoms: _selectedSymptoms,
+                    ),
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.mintColor,
+              padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text(
+              "Continue Diagnosis",
+              style: TextStyle(color: Colors.black, fontSize: 16),
+            ),
+          ),
         ),
       ),
     );
@@ -137,8 +202,8 @@ class WelcomeSection extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(50),
             image: const DecorationImage(
-              image:
-                  AssetImage("lib/assets/doctor.jpg"), // Add your image to assets
+              image: AssetImage(
+                  "lib/assets/doctor.jpg"),
               fit: BoxFit.cover,
             ),
           ),
@@ -146,7 +211,7 @@ class WelcomeSection extends StatelessWidget {
         const SizedBox(width: 16),
         Expanded(
           child: Text(
-            "Welcome $userName, what brings you in today?",
+            "Welcome $userName, what symptoms are you feeling today?",
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
           ),
         ),
@@ -156,49 +221,162 @@ class WelcomeSection extends StatelessWidget {
 }
 
 // Symptom Input in Dashboard
-class SymptomsInputSection extends StatelessWidget {
-  const SymptomsInputSection({super.key});
+class SymptomsInputSection extends StatefulWidget {
+  final ValueChanged<List<String>> onSymptomsChanged;
+  const SymptomsInputSection({super.key, required this.onSymptomsChanged});
+
+  @override
+  _SymptomsInputSectionState createState() => _SymptomsInputSectionState();
+}
+
+class _SymptomsInputSectionState extends State<SymptomsInputSection> {
+  final TextEditingController _controller = TextEditingController();
+  final FocusNode _focusNode = FocusNode(); // FocusNode to track input focus
+  final List<String> _selectedSymptoms = [];
+  List<String> _filteredDiseases = [];
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Listener to clear suggestions when search loses focus
+    _focusNode.addListener(() {
+      if (!_focusNode.hasFocus) {
+        setState(() {
+          _filteredDiseases.clear();
+        });
+      }
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    
+    // Reset search when navigating back
+    setState(() {
+      _controller.clear();
+      _filteredDiseases.clear();
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  void _addSymptom(String symptom) {
+    if (symptom.isNotEmpty && !_selectedSymptoms.contains(symptom)) {
+      setState(() {
+        _selectedSymptoms.add(symptom);
+        _controller.clear();
+        _filteredDiseases.clear(); // Hide dropdown after selection
+      });
+      widget.onSymptomsChanged(_selectedSymptoms);
+    }
+  }
+
+  void _onSearchChanged(String query) {
+    setState(() {
+      _filteredDiseases = diseaseList
+          .where((disease) => disease.toLowerCase().contains(query.toLowerCase()))
+          .toList();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "",
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          decoration: InputDecoration(
-            hintText: "Message Dr. MediMatch",
-            border: OutlineInputBorder(
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque, // Ensures taps outside are detected
+      onTap: () {
+        // Dismiss keyboard and clear dropdown when tapping outside
+        FocusScope.of(context).unfocus();
+        setState(() {
+          _filteredDiseases.clear();
+        });
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Search box with dynamic dropdown
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
               borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey),
             ),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              children: [
+                TextField(
+                  controller: _controller,
+                  focusNode: _focusNode, // Attach focus node
+                  onChanged: _onSearchChanged,
+                  decoration: InputDecoration(
+                    hintText: "Search a symptom",
+                    suffixIcon: Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: Image.asset(
+                        "lib/assets/search-icon.png",
+                        width: 12,
+                        height: 12,
+                      ),
+                    ),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  ),
+                ),
+
+                // Disease suggestions dropdown
+                if (_filteredDiseases.isNotEmpty)
+                  Container(
+                    constraints: const BoxConstraints(maxHeight: 200),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey),
+                    ),
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: _filteredDiseases.length,
+                      itemBuilder: (context, index) {
+                        return ListTile(
+                          title: Text(_filteredDiseases[index]),
+                          onTap: () {
+                            _addSymptom(_filteredDiseases[index]);
+                            FocusScope.of(context).unfocus(); // Hide keyboard after selection
+                          },
+                        );
+                      },
+                    ),
+                  ),
+              ],
+            ),
           ),
-        ),
-        const SizedBox(height: 20),
-        Center(
-          child: ElevatedButton(
-            onPressed: () {
-              // Handle user input submission
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: const Text(
-              "Submit",
-              style: TextStyle(color: Colors.white, fontSize: 16),
-            ),
+          const SizedBox(height: 12),
+
+          // Selected symptoms
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _selectedSymptoms.map((symptom) {
+              return Chip(
+                backgroundColor: AppColors.mintColor,
+                label: Text(symptom),
+                deleteIcon: const Icon(Icons.close),
+                onDeleted: () {
+                  setState(() {
+                    _selectedSymptoms.remove(symptom);
+                  });
+                  widget.onSymptomsChanged(_selectedSymptoms);
+                },
+              );
+            }).toList(),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -285,8 +463,15 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
+        backgroundColor: AppColors.mintColor,
+        title: Text(
+          widget.title,
+          style: const TextStyle(
+            fontFamily: 'Mononoki',
+            fontWeight: FontWeight.bold,
+            fontSize: 48,
+          ),
+        ),
       ),
       body: IndexedStack(
         index: _selectedIndex,
