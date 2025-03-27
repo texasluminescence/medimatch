@@ -216,118 +216,161 @@ class WelcomeSection extends StatelessWidget {
 
 // Symptom Input in Dashboard
 class SymptomsInputSection extends StatefulWidget {
-    final ValueChanged<List<String>> onSymptomsChanged;
+  final ValueChanged<List<String>> onSymptomsChanged;
   const SymptomsInputSection({Key? key, required this.onSymptomsChanged}) : super(key: key);
+
   @override
   _SymptomsInputSectionState createState() => _SymptomsInputSectionState();
 }
 
 class _SymptomsInputSectionState extends State<SymptomsInputSection> {
   final TextEditingController _controller = TextEditingController();
+  final FocusNode _focusNode = FocusNode(); // FocusNode to track input focus
   final List<String> _selectedSymptoms = [];
+  List<String> _filteredDiseases = [];
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Listener to clear suggestions when search loses focus
+    _focusNode.addListener(() {
+      if (!_focusNode.hasFocus) {
+        setState(() {
+          _filteredDiseases.clear();
+        });
+      }
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    
+    // Reset search when navigating back
+    setState(() {
+      _controller.clear();
+      _filteredDiseases.clear();
+    });
+  }
 
   @override
   void dispose() {
     _controller.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
-  void _addSymptom() {
-  final symptom = _controller.text.trim();
-  if (symptom.isNotEmpty) {
-    setState(() {
-      _selectedSymptoms.add(symptom);
-      _controller.clear();
-    });
-    widget.onSymptomsChanged(_selectedSymptoms);
+  void _addSymptom(String symptom) {
+    if (symptom.isNotEmpty && !_selectedSymptoms.contains(symptom)) {
+      setState(() {
+        _selectedSymptoms.add(symptom);
+        _controller.clear();
+        _filteredDiseases.clear(); // Hide dropdown after selection
+      });
+      widget.onSymptomsChanged(_selectedSymptoms);
+    }
   }
-}
+
+  void _onSearchChanged(String query) {
+    setState(() {
+      _filteredDiseases = diseaseList
+          .where((disease) => disease.toLowerCase().contains(query.toLowerCase()))
+          .toList();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // user type symptom 
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque, // Ensures taps outside are detected
+      onTap: () {
+        // Dismiss keyboard and clear dropdown when tapping outside
+        FocusScope.of(context).unfocus();
+        setState(() {
+          _filteredDiseases.clear();
+        });
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Search box with dynamic dropdown
+          Container(
+            decoration: BoxDecoration(
               color: Colors.white,
-              width: 2,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey),
             ),
-          ),
-          padding: const EdgeInsets.all(8),
-          child: TextField(
-            controller: _controller,
-            decoration: InputDecoration(
-              hintText: "Search",
-              suffixIcon: Padding(
-                padding: const EdgeInsets.all(10),
-                child: Image.asset(
-                  "lib/assets/search-icon.png",
-                  width: 12,
-                  height: 12,
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              children: [
+                TextField(
+                  controller: _controller,
+                  focusNode: _focusNode, // Attach focus node
+                  onChanged: _onSearchChanged,
+                  decoration: InputDecoration(
+                    hintText: "Search a symptom",
+                    suffixIcon: Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: Image.asset(
+                        "lib/assets/search-icon.png",
+                        width: 12,
+                        height: 12,
+                      ),
+                    ),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  ),
                 ),
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Colors.grey),
-              ),
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
 
-        // Displayed symptoms
-        ConstrainedBox(
-          constraints: const BoxConstraints(maxHeight: 150),
-          child: SingleChildScrollView(
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _selectedSymptoms.map((symptom) {
-                return Chip(
-                  backgroundColor: AppColors.mintColor,
-                  label: Text(symptom),
-                  deleteIcon: const Icon(Icons.close),
-                  onDeleted: () {
-                    setState(() {
-                      _selectedSymptoms.remove(symptom);
-                    });
-                    widget.onSymptomsChanged(_selectedSymptoms);
-                  },
-                );
-              }).toList(),
+                // Disease suggestions dropdown
+                if (_filteredDiseases.isNotEmpty)
+                  Container(
+                    constraints: const BoxConstraints(maxHeight: 200),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey),
+                    ),
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: _filteredDiseases.length,
+                      itemBuilder: (context, index) {
+                        return ListTile(
+                          title: Text(_filteredDiseases[index]),
+                          onTap: () {
+                            _addSymptom(_filteredDiseases[index]);
+                            FocusScope.of(context).unfocus(); // Hide keyboard after selection
+                          },
+                        );
+                      },
+                    ),
+                  ),
+              ],
             ),
           ),
-        ),
+          const SizedBox(height: 12),
 
-        const SizedBox(height: 20),
-        Center(
-          child: ElevatedButton(
-            onPressed: () {
-              // adds symptom user typed to list
-              _addSymptom();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.mintColor,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 48, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: const Text(
-              "Add Symptom",
-              style: TextStyle(color: Colors.black, fontSize: 16),
-            ),
+          // Selected symptoms
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _selectedSymptoms.map((symptom) {
+              return Chip(
+                backgroundColor: AppColors.mintColor,
+                label: Text(symptom),
+                deleteIcon: const Icon(Icons.close),
+                onDeleted: () {
+                  setState(() {
+                    _selectedSymptoms.remove(symptom);
+                  });
+                  widget.onSymptomsChanged(_selectedSymptoms);
+                },
+              );
+            }).toList(),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
