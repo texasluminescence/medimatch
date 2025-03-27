@@ -18,6 +18,7 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool _obscurePassword = true;
 
   // Google Sign-In
   final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email']);
@@ -175,21 +176,34 @@ class _LoginState extends State<Login> {
                             ),
                           ),
                           const SizedBox(height: 20),
-                          TextFormField(
+                            TextFormField(
                             controller: _passwordController,
-                            obscureText: true,
+                            obscureText: _obscurePassword,
                             decoration: InputDecoration(
                               filled: true,
                               fillColor: Colors.grey[200],
                               hintText: 'Password',
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide.none,
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
                               ),
                               contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 12),
+                                horizontal: 16, vertical: 12),
+                              suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscurePassword 
+                                  ? Icons.visibility_off 
+                                  : Icons.visibility,
+                                color: Colors.grey,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                _obscurePassword = !_obscurePassword;
+                                });
+                              },
+                              ),
                             ),
-                          ),
+                            ),
                           const SizedBox(height: 20),
                           ElevatedButton(
                             onPressed: handleLogin,
