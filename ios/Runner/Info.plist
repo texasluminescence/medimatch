@@ -53,5 +53,16 @@
 	<string>Access to use Face ID</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Access to pick a photo</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>com.googleusercontent.apps.151444420576-ojm3iei1beph36sp0spo9oeohoff052n</string>
+            </array>
+		</dict>
+	</array>
+    <key>GIDClientID</key>
+    <string>151444420576-ojm3iei1beph36sp0spo9oeohoff052n.apps.googleusercontent.com</string>
 </dict>
 </plist>
