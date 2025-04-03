@@ -46,7 +46,7 @@ class AmplifyService {
       // Navigate to the Home Page
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const MyHomePage(title: "Home Page")),
+        MaterialPageRoute(builder: (context) => const MyHomePage(title: "MEDIMATCH")),
       );
     } on AuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
