@@ -227,7 +227,7 @@ class _SymptomsInputSectionState extends State<SymptomsInputSection> {
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode(); // FocusNode to track input focus
   final List<String> _selectedSymptoms = [];
-  List<String> _filteredDiseases = [];
+  List<String> _filteredSymptoms = [];
 
   @override
   void initState() {
@@ -237,7 +237,7 @@ class _SymptomsInputSectionState extends State<SymptomsInputSection> {
     _focusNode.addListener(() {
       if (!_focusNode.hasFocus) {
         setState(() {
-          _filteredDiseases.clear();
+          _filteredSymptoms.clear();
         });
       }
     });
@@ -250,7 +250,7 @@ class _SymptomsInputSectionState extends State<SymptomsInputSection> {
     // Reset search when navigating back
     setState(() {
       _controller.clear();
-      _filteredDiseases.clear();
+      _filteredSymptoms.clear();
     });
   }
 
@@ -266,19 +266,19 @@ class _SymptomsInputSectionState extends State<SymptomsInputSection> {
       setState(() {
         _selectedSymptoms.add(symptom);
         _controller.clear();
-        _filteredDiseases.clear(); // Hide dropdown after selection
+        _filteredSymptoms.clear(); // Hide dropdown after selection
       });
       widget.onSymptomsChanged(_selectedSymptoms);
     }
   }
 
   void _onSearchChanged(String query) {
-    setState(() {
-      _filteredDiseases = diseaseList
-          .where((disease) => disease.toLowerCase().contains(query.toLowerCase()))
-          .toList();
-    });
-  }
+  setState(() {
+    _filteredSymptoms = symptomList
+        .where((symptom) => symptom.toLowerCase().contains(query.toLowerCase()))
+        .toList();
+  });
+}
 
   @override
   Widget build(BuildContext context) {
@@ -288,7 +288,7 @@ class _SymptomsInputSectionState extends State<SymptomsInputSection> {
         // Dismiss keyboard and clear dropdown when tapping outside
         FocusScope.of(context).unfocus();
         setState(() {
-          _filteredDiseases.clear();
+          _filteredSymptoms.clear();
         });
       },
       child: Column(
@@ -324,7 +324,7 @@ class _SymptomsInputSectionState extends State<SymptomsInputSection> {
                 ),
 
                 // Disease suggestions dropdown
-                if (_filteredDiseases.isNotEmpty)
+                if (_filteredSymptoms.isNotEmpty)
                   Container(
                     constraints: const BoxConstraints(maxHeight: 200),
                     decoration: BoxDecoration(
@@ -334,12 +334,12 @@ class _SymptomsInputSectionState extends State<SymptomsInputSection> {
                     ),
                     child: ListView.builder(
                       shrinkWrap: true,
-                      itemCount: _filteredDiseases.length,
+                      itemCount: _filteredSymptoms.length,
                       itemBuilder: (context, index) {
                         return ListTile(
-                          title: Text(_filteredDiseases[index]),
+                          title: Text(_filteredSymptoms[index]),
                           onTap: () {
-                            _addSymptom(_filteredDiseases[index]);
+                            _addSymptom(_filteredSymptoms[index]);
                             FocusScope.of(context).unfocus(); // Hide keyboard after selection
                           },
                         );
