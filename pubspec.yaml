@@ -83,6 +83,8 @@ flutter:
     - lib/assets/doctor.jpg
     - lib/assets/medimatch-logo.png
     - lib/assets/search-icon.png
+    - lib/assets/keyboard.png
+    - lib/assets/scan.png
     - .env
 
 flutter_icons:

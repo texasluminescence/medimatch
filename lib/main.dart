@@ -440,7 +440,7 @@ class _MyHomePageState extends State<MyHomePage> {
       // Navigate to the scanner
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const Scanner()),
+        MaterialPageRoute(builder: (context) => const MediMatchScreen()),
       ).then((_) {
         setState(() {
           _selectedIndex = 1; // Reset to Home tab

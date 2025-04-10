@@ -4,13 +4,13 @@ import 'colors.dart';
 class SymptomDetailsPage extends StatefulWidget {
   final List<String> symptoms;
 
-  const SymptomDetailsPage({Key? key, required this.symptoms}) : super(key: key);
+  const SymptomDetailsPage({super.key, required this.symptoms});
 
   @override
-  _SymptomDetailsPageState createState() => _SymptomDetailsPageState();
+  SymptomDetailsPageState createState() => SymptomDetailsPageState();
 }
 
-class _SymptomDetailsPageState extends State<SymptomDetailsPage> {
+class SymptomDetailsPageState extends State<SymptomDetailsPage> {
   final Map<String, int> _daysMap = {};
   final Map<String, int> _severityMap = {};
   final ScrollController _scrollController = ScrollController();
