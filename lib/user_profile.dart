@@ -112,13 +112,14 @@ class _UserProfileState extends State<UserProfile> {
       const key = 'profile_picture.jpg';
 
       // Upload the image to Amplify Storage
-      await Amplify.Storage.uploadFile(
+      Amplify.Storage.uploadFile(
         local: file,
         key: key,
       );
 
       // Fetch the new image URL
-      final url = (await Amplify.Storage.getUrl(key: key)).url;
+      final getUrlResult = await Amplify.Storage.getUrl(key: key);
+      final url = getUrlResult.url;
 
       setState(() {
         _profilePictureUrl = url;

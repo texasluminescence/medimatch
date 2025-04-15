@@ -6,7 +6,6 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class DiagnosisPage extends StatefulWidget {
   final List<String> symptoms;
-
   const DiagnosisPage({Key? key, required this.symptoms}) : super(key: key);
 
   @override
@@ -15,7 +14,7 @@ class DiagnosisPage extends StatefulWidget {
 
 class _DiagnosisPageState extends State<DiagnosisPage> {
   String diagnosis = "Loading...";
-String votes = "";
+  String votes = "";
 
   @override
   void initState() {

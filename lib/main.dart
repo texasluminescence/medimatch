@@ -5,16 +5,22 @@ import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
 import 'package:medimatch/continue_diagnosis.dart';
 import 'login.dart';
-import 'user_profile.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'user_profile.dart' as medimatch;
 import 'amplifyconfiguration.dart';
 import 'scanner.dart';
 import 'colors.dart';
 import 'mongo_db_connection.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email']);
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load();
+
+  // Initialize Google Sign-In
+  await _googleSignIn.signInSilently();
 
   // Configure Amplify
   try {
@@ -100,7 +106,7 @@ class MyHomePage extends StatefulWidget {
 
 // Dashboard Code
 class Dashboard extends StatefulWidget {
-  const Dashboard({Key? key}) : super(key: key);
+  const Dashboard({super.key});
 
   @override
   State<Dashboard> createState() => _DashboardState();
@@ -224,13 +230,13 @@ class WelcomeSection extends StatelessWidget {
 // Symptom Input in Dashboard
 class SymptomsInputSection extends StatefulWidget {
   final ValueChanged<List<String>> onSymptomsChanged;
-  const SymptomsInputSection({Key? key, required this.onSymptomsChanged}) : super(key: key);
+  const SymptomsInputSection({super.key, required this.onSymptomsChanged});
 
   @override
-  _SymptomsInputSectionState createState() => _SymptomsInputSectionState();
+  SymptomsInputSectionState createState() => SymptomsInputSectionState();
 }
 
-class _SymptomsInputSectionState extends State<SymptomsInputSection> {
+class SymptomsInputSectionState extends State<SymptomsInputSection> {
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode(); // FocusNode to track input focus
   final List<String> _selectedSymptoms = [];
@@ -396,7 +402,7 @@ class _MyHomePageState extends State<MyHomePage> {
       // Navigate to the profile page
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const UserProfile()),
+        MaterialPageRoute(builder: (context) => const medimatch.UserProfile()),
       ).then((_) {
         setState(() {
           _selectedIndex = 1; // Reset to Home tab
@@ -441,7 +447,7 @@ class _MyHomePageState extends State<MyHomePage> {
       // Navigate to the scanner
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const Scanner()),
+        MaterialPageRoute(builder: (context) => const MediMatchScreen()),
       ).then((_) {
         setState(() {
           _selectedIndex = 1; // Reset to Home tab
@@ -477,7 +483,7 @@ class _MyHomePageState extends State<MyHomePage> {
       body: IndexedStack(
         index: _selectedIndex,
         children: const [
-          Center(child: Text("Search Page")),
+          Center(child: Text("Calendar Page")),
           Dashboard(),
           Center(child: Text("Scan Page")),
           Center(child: Text("Profile Placeholder")),
@@ -490,8 +496,8 @@ class _MyHomePageState extends State<MyHomePage> {
         child: BottomNavigationBar(
           items: const <BottomNavigationBarItem>[
             BottomNavigationBarItem(
-              icon: Icon(Icons.search),
-              label: 'Search',
+              icon: Icon(Icons.calendar_month),
+              label: 'Calendar',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.home),
@@ -514,6 +520,7 @@ class _MyHomePageState extends State<MyHomePage> {
           selectedItemColor: Colors.blue,
           unselectedItemColor: Colors.grey,
           onTap: _onItemTapped,
+          // ignore: deprecated_member_use
           backgroundColor: Colors.white.withOpacity(0.9),
           type: BottomNavigationBarType.fixed,
         ),
