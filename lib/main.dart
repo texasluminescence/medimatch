@@ -10,9 +10,11 @@ import 'amplifyconfiguration.dart';
 import 'scanner.dart';
 import 'colors.dart';
 import 'mongo_db_connection.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load();
 
   // Configure Amplify
   try {
@@ -118,20 +120,25 @@ class _DashboardState extends State<Dashboard> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          children: [
-            const WelcomeSection(userName: "User"), // Replace with dynamic username
-            const SizedBox(height: 24),
-
-            // Symptoms Input Section
-           SymptomsInputSection(
-              onSymptomsChanged: _updateSymptoms,
-            ),
-          ],
-        ),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const WelcomeSection(userName: "User"),
+          const SizedBox(height: 24),
+          SymptomsInputSection(
+            onSymptomsChanged: _updateSymptoms,
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            "The more symptoms you add, the more accurate the diagnosis.",
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
+    ),
 
     bottomNavigationBar: Padding(
       // Continue button at the bottom 

@@ -1,10 +1,53 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'colors.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-class DiagnosisPage extends StatelessWidget {
+class DiagnosisPage extends StatefulWidget {
   final List<String> symptoms;
 
   const DiagnosisPage({Key? key, required this.symptoms}) : super(key: key);
+
+  @override
+  _DiagnosisPageState createState() => _DiagnosisPageState();
+}
+
+class _DiagnosisPageState extends State<DiagnosisPage> {
+  String diagnosis = "Loading...";
+String votes = "";
+
+  @override
+  void initState() {
+    super.initState();
+    getDiagnosis();
+  }
+
+  Future<void> getDiagnosis() async {
+    final url = Uri.parse("http://<your-lan-ip>/predict"); // TODO: use your LAN IP
+    final response = await http.post(
+    url,
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({
+      "symptoms": widget.symptoms.join(','),
+    }),
+  );
+
+    print("Status code: ${response.statusCode}");
+    print("Response body: ${response.body}");
+
+    if (response.statusCode == 200) {
+      final result = jsonDecode(response.body);
+        setState(() {
+          diagnosis = result['final_prediction'] ?? 'Unknown';
+          votes = result['votes'] ?? '';
+        });
+    } else {
+      setState(() {
+        diagnosis = "Failed to get diagnosis";
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +61,6 @@ class DiagnosisPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Doctor picture
             Center(
               child: Container(
                 width: 120,
@@ -39,9 +81,9 @@ class DiagnosisPage extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
-            const Text(
-              "Based on your test results, you have a cold.",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+            Text(
+              "$votes models predict: $diagnosis",
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -51,13 +93,13 @@ class DiagnosisPage extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             ListView.builder(
-              itemCount: symptoms.length,
+              itemCount: widget.symptoms.length,
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemBuilder: (context, index) {
                 return ListTile(
                   leading: const Icon(Icons.check),
-                  title: Text(symptoms[index]),
+                  title: Text(widget.symptoms[index]),
                 );
               },
             ),
