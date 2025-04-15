@@ -142,7 +142,7 @@ class _DashboardState extends State<Dashboard> {
             onPressed: () {
               // ensure user inputs something
               if (_selectedSymptoms.isEmpty) {
-                // show a warning message
+                // Show a warning message if no symptom is selected
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('Please select at least one symptom.'),
@@ -151,11 +151,11 @@ class _DashboardState extends State<Dashboard> {
                   ),
                 );
               } else {
-                // pass in symptoms to next page
-                  Navigator.push(
+                // Navigate to DiagnosisPage, passing selected symptoms
+                Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => SymptomDetailsPage(
+                    builder: (context) => DiagnosisPage(
                       symptoms: _selectedSymptoms,
                     ),
                   ),
