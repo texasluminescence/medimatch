@@ -15,7 +15,7 @@ class _CalendarPageState extends State<CalendarPage> {
   int selectedDay = DateTime.now().day;
 
   List<Map<String, String>> activeMedications = [
-    {"name": "Omega-3 Fish Oil", "dose": "1 mL", "type": "Liquid"},
+    {"name": "Omega-3 Fish Oil", "dose": "1 mL", "type": "Gel Capsule"},
     {"name": "Vitamin D", "dose": "1 capsule", "type": "Capsule"},
   ];
 
