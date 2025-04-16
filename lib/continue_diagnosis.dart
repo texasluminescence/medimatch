@@ -1,18 +1,21 @@
+// ignore_for_file: avoid_print
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'colors.dart';
+// ignore: unused_import
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class DiagnosisPage extends StatefulWidget {
   final List<String> symptoms;
-  const DiagnosisPage({Key? key, required this.symptoms}) : super(key: key);
+  const DiagnosisPage({super.key, required this.symptoms});
 
   @override
-  _DiagnosisPageState createState() => _DiagnosisPageState();
+  DiagnosisPageState createState() => DiagnosisPageState();
 }
 
-class _DiagnosisPageState extends State<DiagnosisPage> {
+class DiagnosisPageState extends State<DiagnosisPage> {
   String diagnosis = "Loading...";
   String votes = "";
 
