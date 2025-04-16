@@ -1,0 +1,9 @@
+pandas
+scipy
+google-generativeai
+numpy
+seaborn
+matplotlib
+sklearn
+flask_cors
+python-dotenv

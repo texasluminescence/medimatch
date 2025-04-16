@@ -1,7 +1,10 @@
+// ignore_for_file: avoid_print
+
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 
 List<String> diseaseList = [];
+List<String> symptomList = [];
 
 Future<void> connectToMongo() async {
   await dotenv.load();
@@ -23,24 +26,40 @@ Future<void> connectToMongo() async {
     var collection = db.collection(collectionName);
     var data = await collection.find().toList();
 
-    // print("$data");
-    // print all diseases
-    // for (var test in data) {
-    //     print(test['Disease']);
-    // }
-    // print('list length: ${data.length}');
+    // Extract and sort unique disease names
+    diseaseList = data
+        .map((doc) => doc['Disease'].toString().trim())
+        .toSet()
+        .toList()
+      ..sort();
 
-    // extract diseases, only keep unique values, sort it
-    diseaseList = data.map((doc) => doc['Disease'].toString().trim())
-        .toSet().toList()..sort();
+    // Extract and clean symptoms
+    Set<String> symptoms = {};
+    for (var doc in data) {
+      for (var key in doc.keys) {
+        if (key.startsWith('Symptom_') && doc[key] != null) {
+          String cleaned = doc[key]
+              .toString()
+              .trim()
+              .replaceAll('_', ' ')
+              .replaceAll(RegExp(' +'), ' '); // remove double spaces
+          if (cleaned.isNotEmpty) {
+            symptoms.add(cleaned);
+          }
+        }
+      }
+    }
 
+    symptomList = symptoms.toList()..sort();
+
+    print("Diseases found: ${diseaseList.length}");
+    print("Symptoms found: ${symptomList.length}");
 
     await db.close();
   } catch (e) {
     print("Error connecting to MongoDB: $e");
   }
 }
-
 Future<void> updateUserProfile({
   required String email,
   DateTime? dob,

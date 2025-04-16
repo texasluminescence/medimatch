@@ -449,7 +449,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => const MyHomePage(
-                        title: 'Home',
+                        title: 'MEDIMATCH',
                       )),
                   );
                 },

@@ -9,13 +9,16 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'user_profile.dart' as medimatch;
 import 'amplifyconfiguration.dart';
 import 'scanner.dart';
+import 'calendar_page.dart';
 import 'colors.dart';
 import 'mongo_db_connection.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email']);
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load();
 
   // Initialize Google Sign-In
   await _googleSignIn.signInSilently();
@@ -124,20 +127,25 @@ class _DashboardState extends State<Dashboard> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          children: [
-            const WelcomeSection(userName: "User"), // Replace with dynamic username
-            const SizedBox(height: 24),
-
-            // Symptoms Input Section
-           SymptomsInputSection(
-              onSymptomsChanged: _updateSymptoms,
-            ),
-          ],
-        ),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const WelcomeSection(userName: "User"),
+          const SizedBox(height: 24),
+          SymptomsInputSection(
+            onSymptomsChanged: _updateSymptoms,
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            "The more symptoms you add, the more accurate the diagnosis.",
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
+    ),
 
     bottomNavigationBar: Padding(
       // Continue button at the bottom 
@@ -148,7 +156,7 @@ class _DashboardState extends State<Dashboard> {
             onPressed: () {
               // ensure user inputs something
               if (_selectedSymptoms.isEmpty) {
-                // show a warning message
+                // Show a warning message if no symptom is selected
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('Please select at least one symptom.'),
@@ -157,11 +165,11 @@ class _DashboardState extends State<Dashboard> {
                   ),
                 );
               } else {
-                // pass in symptoms to next page
-                  Navigator.push(
+                // Navigate to DiagnosisPage, passing selected symptoms
+                Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => SymptomDetailsPage(
+                    builder: (context) => DiagnosisPage(
                       symptoms: _selectedSymptoms,
                     ),
                   ),
@@ -226,14 +234,14 @@ class SymptomsInputSection extends StatefulWidget {
   const SymptomsInputSection({super.key, required this.onSymptomsChanged});
 
   @override
-  _SymptomsInputSectionState createState() => _SymptomsInputSectionState();
+  SymptomsInputSectionState createState() => SymptomsInputSectionState();
 }
 
-class _SymptomsInputSectionState extends State<SymptomsInputSection> {
+class SymptomsInputSectionState extends State<SymptomsInputSection> {
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode(); // FocusNode to track input focus
   final List<String> _selectedSymptoms = [];
-  List<String> _filteredDiseases = [];
+  List<String> _filteredSymptoms = [];
 
   @override
   void initState() {
@@ -243,7 +251,7 @@ class _SymptomsInputSectionState extends State<SymptomsInputSection> {
     _focusNode.addListener(() {
       if (!_focusNode.hasFocus) {
         setState(() {
-          _filteredDiseases.clear();
+          _filteredSymptoms.clear();
         });
       }
     });
@@ -256,7 +264,7 @@ class _SymptomsInputSectionState extends State<SymptomsInputSection> {
     // Reset search when navigating back
     setState(() {
       _controller.clear();
-      _filteredDiseases.clear();
+      _filteredSymptoms.clear();
     });
   }
 
@@ -272,19 +280,19 @@ class _SymptomsInputSectionState extends State<SymptomsInputSection> {
       setState(() {
         _selectedSymptoms.add(symptom);
         _controller.clear();
-        _filteredDiseases.clear(); // Hide dropdown after selection
+        _filteredSymptoms.clear(); // Hide dropdown after selection
       });
       widget.onSymptomsChanged(_selectedSymptoms);
     }
   }
 
   void _onSearchChanged(String query) {
-    setState(() {
-      _filteredDiseases = diseaseList
-          .where((disease) => disease.toLowerCase().contains(query.toLowerCase()))
-          .toList();
-    });
-  }
+  setState(() {
+    _filteredSymptoms = symptomList
+        .where((symptom) => symptom.toLowerCase().contains(query.toLowerCase()))
+        .toList();
+  });
+}
 
   @override
   Widget build(BuildContext context) {
@@ -294,7 +302,7 @@ class _SymptomsInputSectionState extends State<SymptomsInputSection> {
         // Dismiss keyboard and clear dropdown when tapping outside
         FocusScope.of(context).unfocus();
         setState(() {
-          _filteredDiseases.clear();
+          _filteredSymptoms.clear();
         });
       },
       child: Column(
@@ -330,7 +338,7 @@ class _SymptomsInputSectionState extends State<SymptomsInputSection> {
                 ),
 
                 // Disease suggestions dropdown
-                if (_filteredDiseases.isNotEmpty)
+                if (_filteredSymptoms.isNotEmpty)
                   Container(
                     constraints: const BoxConstraints(maxHeight: 200),
                     decoration: BoxDecoration(
@@ -340,12 +348,12 @@ class _SymptomsInputSectionState extends State<SymptomsInputSection> {
                     ),
                     child: ListView.builder(
                       shrinkWrap: true,
-                      itemCount: _filteredDiseases.length,
+                      itemCount: _filteredSymptoms.length,
                       itemBuilder: (context, index) {
                         return ListTile(
-                          title: Text(_filteredDiseases[index]),
+                          title: Text(_filteredSymptoms[index]),
                           onTap: () {
-                            _addSymptom(_filteredDiseases[index]);
+                            _addSymptom(_filteredSymptoms[index]);
                             FocusScope.of(context).unfocus(); // Hide keyboard after selection
                           },
                         );
@@ -390,6 +398,17 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       _selectedIndex = index;
     });
+
+    if (index == 0) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const CalendarPage()),
+      ).then((_) {
+        setState(() {
+          _selectedIndex = 1; // Reset to Home tab
+        });
+      });
+    }
 
     if (index == 3) {
       // Navigate to the profile page
@@ -440,7 +459,7 @@ class _MyHomePageState extends State<MyHomePage> {
       // Navigate to the scanner
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const Scanner()),
+        MaterialPageRoute(builder: (context) => const MediMatchScreen()),
       ).then((_) {
         setState(() {
           _selectedIndex = 1; // Reset to Home tab

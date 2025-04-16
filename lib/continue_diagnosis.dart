@@ -1,240 +1,110 @@
+// ignore_for_file: avoid_print
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'colors.dart';
+// ignore: unused_import
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-class SymptomDetailsPage extends StatefulWidget {
+class DiagnosisPage extends StatefulWidget {
   final List<String> symptoms;
-
-  const SymptomDetailsPage({Key? key, required this.symptoms}) : super(key: key);
+  const DiagnosisPage({super.key, required this.symptoms});
 
   @override
-  _SymptomDetailsPageState createState() => _SymptomDetailsPageState();
+  DiagnosisPageState createState() => DiagnosisPageState();
 }
 
-class _SymptomDetailsPageState extends State<SymptomDetailsPage> {
-  final Map<String, int> _daysMap = {};
-  final Map<String, int> _severityMap = {};
-  final ScrollController _scrollController = ScrollController();
-  final GlobalKey _diagnosisKey = GlobalKey(); 
-  bool _showDiagnosis = false;
+class DiagnosisPageState extends State<DiagnosisPage> {
+  String diagnosis = "Loading...";
+  String votes = "";
 
   @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    getDiagnosis();
   }
 
-  void _getDiagnosis() {
-    setState(() {
-      _showDiagnosis = true; 
-    });
+  Future<void> getDiagnosis() async {
+    final url = Uri.parse("http://<your-lan-ip>/predict"); // TODO: use your LAN IP
+    final response = await http.post(
+    url,
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({
+      "symptoms": widget.symptoms.join(','),
+    }),
+  );
 
-    // Ensure UI updates first, then scroll smoothly
-    Future.delayed(const Duration(milliseconds: 300), () {
-      Scrollable.ensureVisible(
-        _diagnosisKey.currentContext!,
-        duration: const Duration(milliseconds: 600),
-        curve: Curves.easeInOut,
-        alignment: 0.1, // Ensures "Here are your test results" is at the top
-      );
-    });
+    print("Status code: ${response.statusCode}");
+    print("Response body: ${response.body}");
+
+    if (response.statusCode == 200) {
+      final result = jsonDecode(response.body);
+        setState(() {
+          diagnosis = result['final_prediction'] ?? 'Unknown';
+          votes = result['votes'] ?? '';
+        });
+    } else {
+      setState(() {
+        diagnosis = "Failed to get diagnosis";
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Describe Your Symptoms"),
+        title: const Text("Diagnosis"),
         backgroundColor: AppColors.mintColor,
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(16.0),
-              children: [
-                // Doctor Picture
-                Center(
-                  child: Container(
-                    width: 120,
-                    height: 120,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(60),
-                      image: const DecorationImage(
-                        image: AssetImage("lib/assets/doctor.jpg"),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // Symptoms input containers
-                for (String symptom in widget.symptoms) ...[
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 24),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "How long have you had $symptom?",
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 8),
-                        DropdownButtonFormField<int>(
-                          value: _daysMap[symptom],
-                          items: List.generate(30, (index) => index + 1)
-                              .map((days) => DropdownMenuItem(
-                                    value: days,
-                                    child: Text("$days day${days > 1 ? 's' : ''}"),
-                                  ))
-                              .toList(),
-                          onChanged: (value) {
-                            setState(() {
-                              if (value != null) _daysMap[symptom] = value;
-                            });
-                          },
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            hintText: "Select 1-30",
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          "How severe is your $symptom?",
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 8),
-                        DropdownButtonFormField<int>(
-                          value: _severityMap[symptom],
-                          items: List.generate(10, (index) => index + 1)
-                              .map((severity) => DropdownMenuItem(
-                                    value: severity,
-                                    child: Text("$severity"),
-                                  ))
-                              .toList(),
-                          onChanged: (value) {
-                            if (value != null) {
-                              setState(() {
-                                _severityMap[symptom] = value;
-                              });
-                            }
-                          },
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            hintText: "Select 1-10",
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-
-                // Get Diagnosis button
-                Center(
-                  child: ElevatedButton(
-                    onPressed: _getDiagnosis,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.mintColor,
-                      padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text(
-                      "Get Diagnosis",
-                      style: TextStyle(color: Colors.black, fontSize: 16),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // Diagnosis details section
-                if (_showDiagnosis) ...[
-                  const Divider(thickness: 2),
-                  const SizedBox(height: 20),
-
-                  // Doctor's response section
-                  Container(
-                    key: _diagnosisKey, 
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Center(
-                          child: Container(
-                            width: 100,
-                            height: 100,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(50),
-                              image: const DecorationImage(
-                                image: AssetImage("lib/assets/doctor.jpg"),
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        const Text(
-                          "Here are your test results:",
-                          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                          textAlign: TextAlign.center,
-                        ),
-                       const SizedBox(height: 16),
-                        const Text(
-                          "Based on your test results, you have a cold.",
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 24),
-                        const Text(
-                          "Here are your symptom details:",
-                          style: TextStyle(fontSize: 20),
-                          textAlign: TextAlign.left,
-                        ),
-                        const SizedBox(height: 16),
-                      ],
-                    ),
-                  ),
-
-                  // Diagnosis Details
-                  for (String symptom in widget.symptoms)
-                    _buildDiagnosisCard(symptom),
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDiagnosisCard(String symptom) {
-    final days = _daysMap[symptom] ?? 0;
-    final severity = _severityMap[symptom] ?? 0;
-    
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      color: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text(
-              symptom,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Center(
+              child: Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(60),
+                  image: const DecorationImage(
+                    image: AssetImage("lib/assets/doctor.jpg"),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
             ),
-            const SizedBox(height: 8),
-            Text("Days Experienced: $days", style: const TextStyle(fontSize: 16)),
-            Text("Severity Level: $severity", style: const TextStyle(fontSize: 16)),
+            const SizedBox(height: 20),
+            const Text(
+              "Here are your test results:",
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              "$votes models predict: $diagnosis",
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              "Your selected symptoms:",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            ListView.builder(
+              itemCount: widget.symptoms.length,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemBuilder: (context, index) {
+                return ListTile(
+                  leading: const Icon(Icons.check),
+                  title: Text(widget.symptoms[index]),
+                );
+              },
+            ),
           ],
         ),
       ),
