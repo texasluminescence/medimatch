@@ -9,6 +9,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'user_profile.dart' as medimatch;
 import 'amplifyconfiguration.dart';
 import 'scanner.dart';
+import 'calendar_page.dart';
 import 'colors.dart';
 import 'mongo_db_connection.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -397,6 +398,17 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       _selectedIndex = index;
     });
+
+    if (index == 0) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const CalendarPage()),
+      ).then((_) {
+        setState(() {
+          _selectedIndex = 1; // Reset to Home tab
+        });
+      });
+    }
 
     if (index == 3) {
       // Navigate to the profile page

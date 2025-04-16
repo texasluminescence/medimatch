@@ -52,7 +52,10 @@ class MediMatchScreenState extends State<MediMatchScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Colors.black,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
