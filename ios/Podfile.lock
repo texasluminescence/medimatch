@@ -154,10 +154,10 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Amplify: 4e41668c8801667e174ab50c12bc3099c71a257f
-  amplify_auth_cognito_ios: 1eb4d4106133efec809dcaf73ccba5f4cf629b7b
-  amplify_core: 6b0b5da4041cfd4c1887790dce4e7d5a6ca2f10f
-  amplify_flutter_ios: 0e37ae2de5b77e8f64bf0a0cc87e838fb110c55e
-  amplify_storage_s3_ios: c880b39aaf272a59b25840317a55103c9a57d4f8
+  amplify_auth_cognito_ios: 9541d4c811f978e22d4f4d6e3ed50b7c31ed9d35
+  amplify_core: 0876b2fbbcec7619f5b58b20c59ecc0118f65a47
+  amplify_flutter_ios: 4389fb31392bf559fead6ac2e3fd2f7ec8e44beb
+  amplify_storage_s3_ios: 0656483cb561c06b67bd0837830515cf4415b9e9
   AmplifyPlugins: 1335f0919aa07329df58685a020f2311c75a5176
   AppAuth: d4f13a8fe0baf391b2108511793e4b479691fb73
   AWSAuthCore: dfaed2a858cdb320c6c9c5c94c4de97bbaa76dad
@@ -168,16 +168,16 @@ SPEC CHECKSUMS:
   AWSPluginsCore: f2188458c27e6cb09597c67876f80611d14275d7
   AWSS3: 63eaa9993edea13160eec1f032978b179a2807fa
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
-  flutter_barcode_scanner: c5aa9f51c150a6242fa392386bd52b64bb27fcb5
-  google_sign_in_ios: 19297361f2c51d7d8ac0201b866ef1fa5d1f94a8
+  flutter_barcode_scanner: 7a1144744c28dc0c57a8de7218ffe5ec59a9e4bf
+  google_sign_in_ios: 4111e87aa5e24a4404f00ea13479f35e571969cc
   GoogleSignIn: d4281ab6cf21542b1cfaff85c191f230b399d2db
   GTMAppAuth: f69bd07d68cd3b766125f7e072c45d7340dea0de
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
-  image_picker_ios: 7fe1ff8e34c1790d6fff70a32484959f563a928a
+  image_picker_ios: c560581cceedb403a6ff17f2f816d7fea1421fc1
   ObjectMapper: 1eb41f610210777375fa806bf161dc39fb832b81
-  path_provider_foundation: 080d55be775b7414fd5a5ef3ac137b97b097e564
-  shared_preferences_foundation: 9e1978ff2562383bd5676f64ec4e9aa8fa06a6f7
-  sqflite_darwin: 20b2a3a3b70e43edae938624ce550a3cbf66a3d0
+  path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
+  shared_preferences_foundation: fcdcbc04712aee1108ac7fda236f363274528f78
+  sqflite_darwin: 5a7236e3b501866c1c9befc6771dfd73ffb8702d
   SwiftFormat: 3e150b22884bcd4b0f8c91a84409996a3e7ca8dc
   SwiftLint: 284cea64b6187c5d6bd83e9a548a64104d546447
 
